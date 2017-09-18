@@ -1,4 +1,17 @@
-This is a starter template for [Ionic](http://ionicframework.com/docs/) projects.
+cloud functions with Node.js + firebase
+https://firebase.google.com/docs/cli/
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## How to use this template
 
