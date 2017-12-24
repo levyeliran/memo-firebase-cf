@@ -1,12 +1,13 @@
 import  { createEventListener } from "./eventFunctions";
+import * as admin from 'firebase-admin'
+import * as  functions from 'firebase-functions'
 
 exports.funcGroup = {
     createEventListener: createEventListener
 };
 
-
-
-
+//init the firebase  module
+admin.initializeApp(functions.config().firebase);
 
 
 
