@@ -1,16 +1,15 @@
 import  { createEventListener } from "./eventFunctions";
+import { generateThumbnailListener } from "./photoFunctions";
 import * as admin from 'firebase-admin'
 import * as  functions from 'firebase-functions'
 
 exports.funcGroup = {
-    createEventListener: createEventListener
+    createEventListener: createEventListener,
+    generateThumbnailListener:generateThumbnailListener
 };
 
 //init the firebase  module
 admin.initializeApp(functions.config().firebase);
-
-
-
 
 /*
 When deploying functions, you can target specific ones:
