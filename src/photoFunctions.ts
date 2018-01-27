@@ -1,29 +1,26 @@
 import * as  functions from 'firebase-functions'
-/*
 import * as  gcs from '@google-cloud/storage'
 import * as path from 'path'
 import * as os from 'os'
 import * as fs from 'fs'
 const spawn = require('child-process-promise').spawn;
-*/
+import * as admin from 'firebase-admin'
+
+import {isNewObject, extractData} from "./extractDataHelper";
+import {FBData} from "./utilities/FBData";
 
 //https://firebase.google.com/docs/storage/extend-with-functions
 export const generateThumbnailListener = functions.storage.object().onChange( event => {
 
     const object = event.data; // The Storage object.
-
-    console.log("a file was uploaded");
-    console.log(object);
-/*
-    console.log(object.bucket);
-    console.log(object.name);
+    console.log(`A file ${object.name} was uploaded to ${object.bucket}:`);
+    console.log(JSON.stringify(object));
 
     const fileBucket = object.bucket; // The Storage bucket that contains the file.
     const filePath = object.name; // File path in the bucket.
     const contentType = object.contentType; // File content type.
     const resourceState = object.resourceState; // The resourceState is 'exists' or 'not_exists' (for file/folder deletions).
-    const metageneration = object.metageneration; // Number of times metadata has been generated. New objects have a value of 1.
-
+    const metaGeneration = object.metageneration; // Number of times metadata has been generated. New objects have a value of 1.
 
     // Exit if this is triggered on a file that is not an image.
     if (!contentType.startsWith('image/')) {
@@ -47,7 +44,7 @@ export const generateThumbnailListener = functions.storage.object().onChange( ev
 
     // Exit if file exists but is not new and is only being triggered
     // because of a metadata change.
-    if (resourceState === 'exists' && metageneration > 1) {
+    if (resourceState === 'exists' && metaGeneration > 1) {
         console.log('This is a metadata change event.');
         return;
     }
@@ -70,9 +67,38 @@ export const generateThumbnailListener = functions.storage.object().onChange( ev
         // Uploading the thumbnail.
         return bucket.upload(tempFilePath, { destination: thumbFilePath, metadata: metadata });
     // Once the thumbnail has been uploaded delete the local file to free up disk space.
-    }).then(() => fs.unlinkSync(tempFilePath));
-
-*/
-
-
+    }).then(() => {
+        fs.unlinkSync(tempFilePath);
+        console.log('Thumbnail deleted from', tempFilePath);
+    });
 });
+
+export const onAddPhotoListener_addTagsNode = functions.database
+    .ref('photoToEvent/{pushId}')
+    .onWrite(async event => {
+
+        // Only edit data when it is first created.
+        if (!isNewObject(event)) {
+            return null;
+        }
+
+        //extract relevant data and add log
+        const fbData:FBData = extractData(event);
+        console.log(fbData);
+
+        // writing to the Firebase Realtime Database.
+        const entity = {
+            photoKey: fbData.data.key,
+            eventKey: fbData.data.eventKey,
+            tags:{}
+        };
+
+        // writing to the Firebase Realtime Database.
+        await admin.database()
+            .ref(`tagToEventPhoto/${fbData.data.eventKey}`)
+            .child(fbData.data.key)
+            .set(entity);
+
+        return entity;
+
+    });

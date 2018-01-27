@@ -8,7 +8,7 @@ import {EventStatus} from "./utilities/EntityTypes";
 
 //to write into db, use admin
 //const snapshot = await admin.database().ref('messages').push({ original: original })
-export const createEventListener = functions.database
+export const createEventListener_setUserToEvent = functions.database
     .ref('events/{pushId}')
     .onWrite(async event => {
 
@@ -34,4 +34,24 @@ export const createEventListener = functions.database
 
         return entity;
 
+    });
+
+
+export const onCreateEventListener_setEventToInvitedUsers = functions.database
+    .ref('events/{pushId}')
+    .onWrite(async event => {
+
+    });
+
+
+export const onCreateEventListener_sendNotifications = functions.database
+    .ref('events/{pushId}')
+    .onWrite(async event => {
+
+    });
+
+const onUpdateEventListener_updateInvitedUsersStatus = functions.database
+    .ref('events/{pushId}')
+    .onUpdate(async event => {
+        //when app close the event - set status "rejected for all other users"
     });

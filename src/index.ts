@@ -1,10 +1,11 @@
-import  { createEventListener } from "./eventFunctions";
-import { generateThumbnailListener } from "./photoFunctions";
+import  { createEventListener_setUserToEvent } from "./eventFunctions";
+import {generateThumbnailListener, onAddPhotoListener_addTagsNode} from "./photoFunctions";
 import * as admin from 'firebase-admin'
 import * as  functions from 'firebase-functions'
 
 exports.funcGroup = {
-    createEventListener: createEventListener,
+    createEventListener_setUserToEvent: createEventListener_setUserToEvent,
+    onAddPhotoListener_addTagsNode: onAddPhotoListener_addTagsNode,
     generateThumbnailListener:generateThumbnailListener
 };
 
