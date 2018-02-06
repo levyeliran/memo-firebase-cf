@@ -47,9 +47,6 @@ export const onPhotoUploaded_generatePhotoThumbnail = functions.storage.object()
     console.log(`A file ${object.name} was uploaded to ${object.bucket}:`);
     console.log(JSON.stringify(object));
 
-    const eventKey = object.name.split('_')[0];
-
-
     // File and directory paths.
     const filePath = photo.data.name;
     const contentType = photo.data.contentType; // This is the image Mimme type
@@ -69,6 +66,17 @@ export const onPhotoUploaded_generatePhotoThumbnail = functions.storage.object()
     // Exit if the image is already a thumbnail.
     if (fileName.startsWith(THUMB_PREFIX)) {
         console.log('Already a Thumbnail.');
+
+        const eventKey = object.name.split('_')[1];
+        //save to thumbnail mapper
+        // Add the URLs to the Database
+        admin.database()
+            .ref(`thumbnailMapper/${eventKey}`)
+            .child(object.name.replace('.png', ''))
+            .set({
+                thumbnailURL: `${object.selfLink}?alt-media&token=${object.metadata.firebaseStorageDownloadTokens}`
+            });
+
         return null;
     }
 
@@ -113,6 +121,7 @@ export const onPhotoUploaded_generatePhotoThumbnail = functions.storage.object()
     }).then(results => {
         console.log('Got Signed URLs.');
         console.log(JSON.stringify(results));
+        const eventKey = object.name.split('_')[1];
         const thumbResult = results[0];
         const originalResult = results[1];
         const thumbFileUrl = thumbResult[0];
