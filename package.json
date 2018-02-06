@@ -9,5 +9,6 @@
     "watch": "tsc --watch",
     "deploy": "tsc && firebase deploy --only functions:funcGroup"
   },
-  "private": true
+  "private": true,
+  "dependencies": {}
 }
