@@ -41,7 +41,9 @@ const THUMB_PREFIX = 'thumb_';
  * After the thumbnail has been generated and uploaded to Cloud Storage,
  * we write the public URL to the Firebase Realtime Database.
  */
-export const onPhotoUploaded_generatePhotoThumbnail = functions.storage.object().onChange(photo => {
+export const onPhotoUploaded_generatePhotoThumbnail = functions.storage
+    .object()
+    .onCreate(photo => {
 
     const object = photo.data; // The Storage object.
     console.log(`A file ${object.name} was uploaded to ${object.bucket}:`);
@@ -57,6 +59,12 @@ export const onPhotoUploaded_generatePhotoThumbnail = functions.storage.object()
     const tempLocalDir = path.dirname(tempLocalFile);
     const tempLocalThumbFile = path.join(os.tmpdir(), thumbFilePath);
 
+    // Exit if this is a move or deletion event.
+    if (photo.data.resourceState === 'not_exists') {
+        console.log('This is a deletion event.');
+        return null;
+    }
+
     // Exit if this is triggered on a file that is not an image.
     if (!contentType.startsWith('image/')) {
         console.log('This is not an image.');
@@ -66,23 +74,20 @@ export const onPhotoUploaded_generatePhotoThumbnail = functions.storage.object()
     // Exit if the image is already a thumbnail.
     if (fileName.startsWith(THUMB_PREFIX)) {
         console.log('Already a Thumbnail.');
+        console.log(`Make Thumbnail ${fileName} public:`);
 
-        const eventKey = object.name.split('_')[1];
-        //save to thumbnail mapper
-        // Add the URLs to the Database
-        admin.database()
-            .ref(`thumbnailMapper/${eventKey}`)
-            .child(object.name.replace('.png', ''))
-            .set({
-                thumbnailURL: `${object.selfLink}?alt-media&token=${object.metadata.firebaseStorageDownloadTokens}`
+        // Cloud Storage files.
+        const bucket = gcs.bucket(photo.data.bucket);
+       //make the thumbnail public
+        bucket.file(fileName)
+            .makePublic()
+            .then(() => {
+                console.log(`gs://${photo.data.bucket}/${fileName} is now public!`);
+            })
+            .catch(err => {
+                console.error('ERROR:', err);
             });
 
-        return null;
-    }
-
-    // Exit if this is a move or deletion event.
-    if (photo.data.resourceState === 'not_exists') {
-        console.log('This is a deletion event.');
         return null;
     }
 
@@ -143,6 +148,9 @@ export const onPhotoAdded_addTagsNode = functions.database
     .ref('photoToEvent/{pushId}')
     .onCreate(async photo => {
 
+        console.log(`A Photo record was saved to database (creating tags node):`);
+        console.log(JSON.stringify(photo));
+
         //extract relevant data and add log
         const fbData: FBData = extractData(photo);
         console.log(fbData);
@@ -167,6 +175,9 @@ export const onPhotoAdded_addTagsNode = functions.database
 export const onPhotoAdded_updateThumbnailURL = functions.database
     .ref('photoToEvent/{pushId}')
     .onCreate(photo => {
+
+        console.log(`A Photo record was saved to database (updating URLs):`);
+        console.log(JSON.stringify(photo));
 
         //extract relevant data and add log
         const fbData: FBData = extractData(photo);

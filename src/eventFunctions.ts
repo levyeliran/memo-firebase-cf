@@ -13,6 +13,7 @@ export const onEvenCreated_setUserToEvent = functions.database
 
         //extract relevant data and add log
         const fbData: FBData = extractData(event);
+        console.log(`An Event record was saved to database:`);
         console.log(fbData);
 
         //register all invited users

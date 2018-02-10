@@ -1,5 +1,8 @@
 import {onEvenCreated_setUserToEvent} from "./eventFunctions";
-import {onPhotoAdded_addTagsNode, onPhotoUploaded_generatePhotoThumbnail} from "./photoFunctions";
+import {
+    onPhotoAdded_addTagsNode, onPhotoAdded_updateThumbnailURL,
+    onPhotoUploaded_generatePhotoThumbnail
+} from "./photoFunctions";
 import {onUserCreated_registerPendingEvents} from "./userFunctions";
 import * as admin from 'firebase-admin'
 import * as  functions from 'firebase-functions'
@@ -10,7 +13,9 @@ exports.funcGroup = {
 
     //photos listeners
     onPhotoAdded_addTagsNode: onPhotoAdded_addTagsNode,
+    onPhotoAdded_updateThumbnailURL: onPhotoAdded_updateThumbnailURL,
     onPhotoUploaded_generatePhotoThumbnail: onPhotoUploaded_generatePhotoThumbnail,
+
 
     //users listeners
     onUserCreated_registerPendingEvents: onUserCreated_registerPendingEvents
