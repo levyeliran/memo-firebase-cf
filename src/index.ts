@@ -1,7 +1,5 @@
 import {onEvenCreated_setUserToEvent} from "./eventFunctions";
-import {
-    onPhotoAdded_addTagsNode, onPhotoAdded_updateThumbnailURL,
-    onPhotoUploaded_generatePhotoThumbnail
+import {onPhotoAdded_updateThumbnailURL,onPhotoUploaded_generatePhotoThumbnail
 } from "./photoFunctions";
 import {onUserCreated_registerPendingEvents} from "./userFunctions";
 import * as admin from 'firebase-admin'
@@ -12,7 +10,6 @@ exports.funcGroup = {
     onEvenCreated_setUserToEvent: onEvenCreated_setUserToEvent,
 
     //photos listeners
-    onPhotoAdded_addTagsNode: onPhotoAdded_addTagsNode,
     onPhotoAdded_updateThumbnailURL: onPhotoAdded_updateThumbnailURL,
     onPhotoUploaded_generatePhotoThumbnail: onPhotoUploaded_generatePhotoThumbnail,
 
@@ -20,6 +17,35 @@ exports.funcGroup = {
     //users listeners
     onUserCreated_registerPendingEvents: onUserCreated_registerPendingEvents
 };
+
+//animation hosting redirection
+exports.animation = functions.https.onRequest((req, res) => {
+    let content = "";
+    if(req.query.animConfKey){
+        content = "";
+    }
+    else {
+        //return empty state
+        content = "empty";
+    }
+    res.status(200).send(
+        `<!doctype html>
+            <body>
+              ${content}
+            </body>
+         </html>`
+    );
+});
+
+
+/*restfull api*/
+/*for animation config as api*/
+//https://www.skcript.com/svr/creating-restful-api-firebase/
+
+
+
+
+
 
 //init the firebase  module
 admin.initializeApp(functions.config().firebase);

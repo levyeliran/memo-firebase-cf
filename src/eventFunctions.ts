@@ -22,7 +22,8 @@ export const onEvenCreated_setUserToEvent = functions.database
             admin.database()
                 .ref(`users`)
                 .once('value')
-                .then(users => {
+                .then(snapshot => {
+                    const users = snapshot.val();
                     if (users) {
                         console.log("found Users");
                         console.log(users);

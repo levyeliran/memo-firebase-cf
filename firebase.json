@@ -1,5 +1,12 @@
 {
   "functions": {
     "source": "functions"
+  },
+  "hosting": {
+    "public": "functions",
+    "rewrites": [{
+      "source": "/animation", "function": "animation"
+    }]
+
   }
 }

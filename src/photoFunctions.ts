@@ -134,7 +134,11 @@ export const onPhotoUploaded_generatePhotoThumbnail = functions.storage
         }).then(results => {
             console.log('Got Signed URLs.');
             console.log(JSON.stringify(results));
-            const eventKey = object.name.split('_')[1];
+            const photoName = object.name.replace('.png', '');
+            const fileNameSplit = photoName.split(']');
+            const eventKey = fileNameSplit[0];
+            const userKey = fileNameSplit[1];
+            const photoKey = fileNameSplit[2];
             const thumbResult = results[0];
             const originalResult = results[1];
             const thumbFileUrl = thumbResult[0];
@@ -142,65 +146,42 @@ export const onPhotoUploaded_generatePhotoThumbnail = functions.storage
             // Add the URLs to the Database
             return admin.database()
                 .ref(`thumbnailMapper/${eventKey}`)
-                .child(object.name.replace('.png', ''))
+                .child(photoKey)
                 .set({
-                    photoName: object.name,
+                    photoKey: photoKey,
+                    photoName: photoName,
+                    userKey: userKey,
                     eventKey: eventKey,
                     orgFileURL: fileUrl,
-                    thumbnailURL: thumbFileUrl
+                    thumbnailURL: thumbFileUrl,
+                    creationDate: (new Date()).toString()
                 });
         }).then(() => console.log('Thumbnail URLs saved to database.'));
     });
 
-export const onPhotoAdded_addTagsNode = functions.database
-    .ref('photoToEvent/{pushId}')
-    .onCreate(async photo => {
 
-        console.log(`A Photo record was saved to database (creating tags node):`);
-        console.log(JSON.stringify(photo));
+export const onPhotoAdded_updateThumbnailURL = functions.database
+    .ref('thumbnailMapper/{eventKey}/{photoKey}')
+    .onCreate(async tm => {
+
+        console.log(`A Photo record was saved to database (updating URLs):`);
+        console.log(JSON.stringify(tm));
 
         //extract relevant data and add log
-        const fbData: FBData = extractData(photo);
+        const fbData: FBData = extractData(tm);
         console.log(fbData);
 
-        // writing to the Firebase Realtime Database.
         const entity = {
-            photoKey: fbData.data.key,
-            eventKey: fbData.data.eventKey,
-            tags: {}
+            fileURL: fbData.data.orgFileURL,
+            fileThumbnailURL: fbData.data.thumbnailURL
         };
+        console.log(`Update the Photo record URLs from Mapper:`);
+        console.log(entity);
 
         // writing to the Firebase Realtime Database.
         await admin.database()
-            .ref(`tagToEventPhoto/${fbData.data.eventKey}`)
-            .child(fbData.data.key)
-            .set(entity);
+            .ref(`photoToEvent/${fbData.data.eventKey}/${fbData.data.photoKey}`)
+            .update(entity);
 
         return entity;
-    });
-
-
-export const onPhotoAdded_updateThumbnailURL = functions.database
-    .ref('photoToEvent/{pushId}')
-    .onCreate(photo => {
-
-        console.log(`A Photo record was saved to database (updating URLs):`);
-        console.log(JSON.stringify(photo));
-
-        //extract relevant data and add log
-        const fbData: FBData = extractData(photo);
-        console.log(fbData);
-
-        // writing to the Firebase Realtime Database.
-        admin.database()
-            .ref(`thumbnailMapper/${fbData.data.eventKey}/${photo.fileName.replace('.png', '')}`)
-            .once('value').then(tm => {
-            admin.database()
-                .ref(`photoToEvent/${fbData.data.eventKey}`)
-                .child(fbData.data.key)
-                .set({
-                    fileURL: tm.orgFileURL,
-                    fileThumbnailURL: tm.thumbnailURL
-                });
-        });
     });

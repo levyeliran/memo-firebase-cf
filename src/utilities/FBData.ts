@@ -1,3 +1,4 @@
+import * as _ from 'lodash'
 export class FBData {
 
     pushId:string;
@@ -7,10 +8,10 @@ export class FBData {
     executionDate:string;
     data:any;
     constructor(obj:any){
-        this.pushId = obj.params.pushId;
-        this.isAdmin = obj.auth.admin;
-        this.userId = obj.auth.variable.uid;
-        this.userEmail = obj.auth.variable.email;
+        this.pushId = _.get(obj,'params.pushId');
+        this.isAdmin = _.get(obj,'auth.admin');
+        this.userId = _.get(obj,'auth.variable.uid');
+        this.userEmail = _.get(obj,'auth.variable.email');
         this.data = obj.data.val();
         this.executionDate = obj.timestamp;
     }
