@@ -43,7 +43,7 @@ export const onEvenCreated_setUserToEvent = functions.database
                                 admin.database()
                                     .ref(`userToEvent/${user.key}/${fbData.data.key}`)
                                     .update({
-                                        eventKey: fbData.data.key,
+                                        key: fbData.data.key,
                                         userKey: user.key,
                                         initials: fbData.data.initials,
                                         isActive: false,
@@ -57,7 +57,8 @@ export const onEvenCreated_setUserToEvent = functions.database
                                 admin.database()
                                     .ref(`userPendingEvents/${pd.id}/${fbData.data.key}`)
                                     .update({
-                                        eventKey: fbData.data.key,
+                                        key: fbData.data.key,
+                                        userPhone: pd.id,
                                         status: EventStatus.invited
                                     });
                             }
