@@ -20,32 +20,46 @@ export const onEvenCreated_setUserToEvent = functions.database
         const participatesDetails = fbData.data.participatesDetails;
         if (participatesDetails) {
             admin.database()
-                .ref(`users`)
+                .ref(`userProfile`)
                 .once('value')
                 .then(snapshot => {
                     const users = snapshot.val();
                     if (users) {
-                        console.log("found Users");
-                        console.log(users);
-                        participatesDetails.forEach(pdEmail => {
-                            const user = users.find(u => u.email === pdEmail);
+                        console.log("found Users in userProfile node");
+                        console.log(JSON.stringify(users));
+                        participatesDetails.forEach(pd => {
+                            console.log(JSON.stringify(pd));
+                            const user = users.find(u => {
+                                const phone = u.phone
+                                        .replace('(','')
+                                        .replace(')', '')
+                                        .replace('-', '')
+                                        .trim(); //id is only the digits
+                                return phone === pd.id;
+                            });
                             if (user) {
-                                console.log(`set event ${fbData.data.key} to users ${user.key}`);
-                                console.log(user);
+                                console.log(`set event ${fbData.data.key} to user ${user.key}`);
+                                console.log(JSON.stringify(user));
                                 admin.database()
                                     .ref(`userToEvent/${user.key}/${fbData.data.key}`)
                                     .update({
                                         eventKey: fbData.data.key,
+                                        userKey: user.key,
+                                        initials: fbData.data.initials,
+                                        isActive: false,
+                                        isPast: false,
+                                        startDate: fbData.data.startDate,
                                         status: EventStatus.invited
-                                    })
+                                    });
                             }
                             else {
-                                console.log(`set PENDING event ${fbData.data.key} to users ${user.key}`);
+                                console.log(`set PENDING event ${fbData.data.key} to user ${pd.name}:${pd.id}`);
                                 admin.database()
-                                    .ref(`userPendingEvents/${pdEmail}/${fbData.data.key}`)
+                                    .ref(`userPendingEvents/${pd.id}/${fbData.data.key}`)
                                     .update({
-                                        eventKey: fbData.data.key
-                                    })
+                                        eventKey: fbData.data.key,
+                                        status: EventStatus.invited
+                                    });
                             }
 
                         });
@@ -58,7 +72,7 @@ export const onEvenCreated_setUserToEvent = functions.database
             status: EventStatus.own
         };
 
-        console.log(`set own event ${fbData.data.key} to CURRENT users`);
+        console.log(`set own event ${fbData.data.key} to CURRENT user ${fbData.userId}`);
         // writing to the Firebase Realtime Database.
         await admin.database()
             .ref(`userToEvent/${fbData.userId}`)
