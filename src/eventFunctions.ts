@@ -23,23 +23,29 @@ export const onEvenCreated_setUserToEvent = functions.database
                 .ref(`userProfile`)
                 .once('value')
                 .then(snapshot => {
-                    const users = snapshot.val();
+                    let users = snapshot.val();
                     if (users) {
                         console.log("found Users in userProfile node");
                         console.log(JSON.stringify(users));
+
                         participatesDetails.forEach(pd => {
+                            console.log(`Set new record for Participant ${pd.name}-${pd.phone}`);
                             console.log(JSON.stringify(pd));
+
+                            //extract the users data
+                            users = Object.keys(users).map(k => users[k]);
                             const user = users.find(u => {
                                 const phone = u.phone
                                         .replace('(','')
                                         .replace(')', '')
                                         .replace('-', '')
-                                        .trim(); //id is only the digits
+                                        .replace(' ', ''); //id is only the digits
                                 return phone === pd.id;
                             });
                             if (user) {
                                 console.log(`set event ${fbData.data.key} to user ${user.key}`);
                                 console.log(JSON.stringify(user));
+
                                 admin.database()
                                     .ref(`userToEvent/${user.key}/${fbData.data.key}`)
                                     .update({
