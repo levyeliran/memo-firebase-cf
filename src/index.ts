@@ -13,7 +13,6 @@ exports.funcGroup = {
     onPhotoAdded_updateThumbnailURL: onPhotoAdded_updateThumbnailURL,
     onPhotoUploaded_generatePhotoThumbnail: onPhotoUploaded_generatePhotoThumbnail,
 
-
     //users listeners
     onUserCreated_registerPendingEvents: onUserCreated_registerPendingEvents
 };

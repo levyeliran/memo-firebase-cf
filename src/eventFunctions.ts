@@ -36,37 +36,43 @@ export const onEvenCreated_setUserToEvent = functions.database
                             users = Object.keys(users).map(k => users[k]);
                             const user = users.find(u => {
                                 const phone = u.phone
-                                        .replace('(','')
-                                        .replace(')', '')
-                                        .replace('-', '')
-                                        .replace(' ', ''); //id is only the digits
+                                    .replace('(', '')
+                                    .replace(')', '')
+                                    .replace('-', '')
+                                    .replace(' ', ''); //id is only the digits
                                 return phone === pd.id;
                             });
+
+                            const eventEntity:any = {
+                                key: fbData.data.key,
+                                userKey: user.key,
+                                initials: fbData.data.initials,
+                                isActive: false,
+                                isPast: false,
+                                startDate: fbData.data.startDate,
+                                status: EventStatus.invited
+                            };
+
                             if (user) {
                                 console.log(`set event ${fbData.data.key} to user ${user.key}`);
                                 console.log(JSON.stringify(user));
 
+                                //add the user key
+                                eventEntity.userKey = user.key;
+
                                 admin.database()
                                     .ref(`userToEvent/${user.key}/${fbData.data.key}`)
-                                    .update({
-                                        key: fbData.data.key,
-                                        userKey: user.key,
-                                        initials: fbData.data.initials,
-                                        isActive: false,
-                                        isPast: false,
-                                        startDate: fbData.data.startDate,
-                                        status: EventStatus.invited
-                                    });
+                                    .update(eventEntity);
                             }
                             else {
                                 console.log(`set PENDING event ${fbData.data.key} to user ${pd.name}:${pd.id}`);
+
+                                //add the user phone "id"
+                                eventEntity.userPhone = pd.id;
+
                                 admin.database()
                                     .ref(`userPendingEvents/${pd.id}/${fbData.data.key}`)
-                                    .update({
-                                        key: fbData.data.key,
-                                        userPhone: pd.id,
-                                        status: EventStatus.invited
-                                    });
+                                    .update(eventEntity);
                             }
 
                         });
