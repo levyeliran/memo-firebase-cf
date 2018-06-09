@@ -15,9 +15,10 @@ export const onUserCreated_registerPendingEvents = functions.database
         const fbData: FBData = extractData(user);
         console.log(fbData);
 
-        //get all pendings events by the user registered Email
+        const userPhone = fixPhoneNumber(fbData.data.phone);
+        //get all pendings events by the user registered phone
         admin.database()
-            .ref(`userPendingEvents/${fbData.data.email}`)
+            .ref(`userPendingEvents/${userPhone}`)
             .once('value')
             .then(pendingEvents => {
                 if (pendingEvents) {
@@ -27,8 +28,18 @@ export const onUserCreated_registerPendingEvents = functions.database
                     // writing to the Firebase Realtime Database.
                     pendingEvents.forEach(pe => {
                         const entity = {
-                            eventKey: pe.key,
-                            status: EventStatus.invited
+                            key: pe.key,
+                            userKey: fbData.data.key,
+                            status: EventStatus.invited,
+                            creatorKey: pe.creatorKey,
+                            creatorName: pe.creatorName,
+                            title: pe.title,
+                            initials: pe.initials,
+                            description: pe.description,
+                            startDate: pe.startDate,
+                            isActive: pe.isActive,
+                            isPast: pe.isPast,
+                            isVipUser: pe.isVipUser
                         };
 
                         console.log(`write pending event ${pe.key} to user ${fbData.userId}`);
@@ -37,15 +48,32 @@ export const onUserCreated_registerPendingEvents = functions.database
                         //write the event details to "userToEvent" node
                         admin.database()
                             .ref(`userToEvent/${fbData.userId}`)
-                            .child(pe.eventkey)
-                            .set(entity);
+                            .child(pe.key)
+                            .set(entity).then(e => {
+                            console.log(`User to event mapping was created from pending events!`);
+                            console.log(JSON.stringify(e));
+                        });
                     });
 
-                    console.log(`remove pending events for user ${fbData.userId}, ${fbData.data.email}`);
+                    console.log(`remove pending events for user ${fbData.userId}, ${fbData.data.email}, ${userPhone}`);
+
                     //remove the current user node
                     admin.database()
-                        .ref(`userPendingEvents/${fbData.data.email}`)
-                        .remove()
+                        .ref(`userPendingEvents/${userPhone}`)
+                        .remove().then(e => {
+                        console.log(`User pending event was deleted!`);
+                        console.log(JSON.stringify(e));
+                    });
                 }
             });
     });
+
+
+function fixPhoneNumber(phone:string =''){
+    return fixPhoneNumber(phone)
+        .replace('+','')
+        .replace('(','')
+        .replace(')', '')
+        .replace('-', '')
+        .replace(' ', '')
+}

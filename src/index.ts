@@ -1,65 +1,82 @@
-import {onEvenCreated_setUserToEvent} from "./eventFunctions";
+import * as admin from 'firebase-admin'
+import * as  functions from 'firebase-functions'
+import {onEvenCreated_setUserToEvent, onEvenUpdated_setUserToEventStatus} from "./eventFunctions";
 import {onPhotoAdded_updateThumbnailURL,onPhotoUploaded_generatePhotoThumbnail
 } from "./photoFunctions";
 import {onUserCreated_registerPendingEvents} from "./userFunctions";
-import * as admin from 'firebase-admin'
-import * as  functions from 'firebase-functions'
+import {onEvenAnimationStatusCreated_createAnimation} from "./animationFunctions";
 
 exports.funcGroup = {
     //events listeners
     onEvenCreated_setUserToEvent: onEvenCreated_setUserToEvent,
+    onEvenUpdated_setUserToEventStatus: onEvenUpdated_setUserToEventStatus,
 
     //photos listeners
     onPhotoAdded_updateThumbnailURL: onPhotoAdded_updateThumbnailURL,
     onPhotoUploaded_generatePhotoThumbnail: onPhotoUploaded_generatePhotoThumbnail,
 
     //users listeners
-    onUserCreated_registerPendingEvents: onUserCreated_registerPendingEvents
+    onUserCreated_registerPendingEvents: onUserCreated_registerPendingEvents,
+
+    //animation listeners
+    onEvenAnimationStatusCreated_createAnimation: onEvenAnimationStatusCreated_createAnimation
 };
 
 //animation hosting redirection
-exports.animation = functions.https.onRequest((req, res) => {
-    let content = "";
-    if(req.query.animConfKey){
-        content = "";
-    }
-    else {
-        //return empty state
-        content = "empty";
-    }
-    res.status(200).send(
-        `<!doctype html>
-            <body>
-              ${content}
-            </body>
-         </html>`
-    );
-});
-
-
 /*restfull api*/
 /*for animation config as api*/
 //https://www.skcript.com/svr/creating-restful-api-firebase/
+exports.animation = functions.https.onRequest((req, res) => {
 
+    //get the animation current
+    //get the new animation
+    console.log('An animation request has triggered!');
+    console.log('request parameters: ');
+    console.log(JSON.stringify(req.query));
 
+    console.log('fetch the animation: ');
+    admin.database()
+        .ref(`eventAnimation/${req.query.eventKey}`)
+        .once('value')
+        .then(eventAnimation => {
+            let animation: any = {};
+            if (eventAnimation) {
+                console.log(`event animation:`);
+                console.log(JSON.stringify(eventAnimation));
 
+                //send the result to the app iFrame - therefore we need to create a valid html document
+                res.status(200).send(
+                    `<!DOCTYPE html>
+                     <html lang="en">
+                        <head>
+                          <link rel="stylesheet"
+                            href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css"
+                            integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw"
+                            crossorigin="anonymous">
+                          <script  src="https://code.jquery.com/jquery-3.3.1.min.js"
+                            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+                            crossorigin="anonymous"></script>
+                          <meta charset="UTF-8">
+                          ${eventAnimation.style}
+                          ${eventAnimation.script}
+                        </head>
+                        <body>
+                        </body>
+                     </html>`);
+
+            }
+            else {
+                //handle here
+                res.status(200).send('');
+            }
+        });
+});
 
 
 
 //init the firebase  module
 admin.initializeApp(functions.config().firebase);
-/*admin.initializeApp(
-    Object.assign({}, functions.config().firebase, {
-            credential: admin.credential.cert({
-                projectId: 'memo-11ade',
-                clientEmail: 'firebase-adminsdk-c2zxm@memo-11ade.iam.gserviceaccount.com',
-                privateKey: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCUTdm2VwL1JRS/\n5XSK/5EDBfiz2VBoWXgjxf83mN9NK3OTeBoiEfu2ASN+mFJLCY0lvvPVDD2O4C8k\\ncpC/wvfG4XIbWVI2HjOx3tZE0qTUezVCsHlKYibbAv9aW5KIcv6XYDQbILQGf5DD\\nkCQgef6G9K2t6OLEtUX8crKVq6oD5zwEirc0hqTQ7DrhmjDAr9ZKcD4SQ1BbRWvU\\ngxT/rFqTr5cpxF7UMR+i4GTfhn1fmZmW6dRPhjsGmf0IWaw+kTqQTTID5DxL4ixV\\ncXJVByD3ascTRyLJaYWKoJMrQeXLWsPtFYbS0LUQzb60WRJGwoD4XqPbnzthDbf5\\ndV9g0y7NAgMBAAECggEAB3BROYlrQ08ZF5gDjL5NcISh6Sl/FEDamxbBGrGPD9Cc\\nYzr8upVC1in/9QdgZ1WjEA/gLKFIzCwYCUC63HeD1KS1w8Pq8P56UtNt1XVoYaUN\\ncpsl9lJuhwFDPC3IL5JvDTo82th81y+aXAjUmxFrcCsBNC4wg7Pg/wzkwsehx0DE\\nKrwIrNc9qIZMa9Qw+R29PnK5zljkqdE98AMFyzKwNxh5U08/viTbRw9UbnkxoADU\\njCNpqu5547VUR9nIc6wQBzaxFxBh+OOY6eIeip1hNNUyKqzFS/U+nit0Ofk8nfqO\\n277J7PGIIgvr3eju/J9kDOtEFKvflh9JN3CnkbdWqQKBgQDMi4vCUpAf1oFfKscC\\n0aUZkWh1qbkRg8I59LLhfzA1CXlmECjz4Sivlj+p0NtBbx5/qetQH4i3ILPgF0bY\\neBARLtM7gg1QMa0LrZywl8uenq8NMnIO5pq9wm9whmKBA2CQ+r8CiTwGyjT1Mb1k\\noqgLDS5mVkZCKtx9nk222Zd3JQKBgQC5nHP+I+lbvcY7M1JKHuFvPYo02IzQiFu2\\nAtxicb+JQh9DZf+QJM7QqWySz3ZUKcM7BplonJ30fklUKWSS/Ev0z95wZzU1Zu4Z\\nlvzZgySCszHTeIV9bhFC/VFTcHvmMgMg6f5i0kHzSbAtJaOSQ1TpvHAUaCq20nsv\\nM71qFMz8iQKBgQDAZ3d0uBMoT69sJKIE7c1eqp/XJmqWphj6SUpGwUxIZ3wRXJwZ\\nJDAQUsXZ6EOGXo8SyXQ27yK8F//7iAm1L+L1NtWtwVzilYfQV2Pv3SnFMEE7qbsO\\ndy8R1qba8x4Pe2zHk4Y/TXXwcR61ki80TajClIiT7Q2zyfuUEmfJ2w4WHQKBgE3Q\\nRGSQA539cmSRQHdoeNQc9ZrwCiDGecRVcLUowMa3XMnxsfFpLPcXgDgQF6hzFbDi\\nNGBCAIpmgzFwZQSmFuXcW4G+EvV/YGSEAx7hNuZAX6wrQ7Nw+HWgI38akibQYrVi\\nw84EHbfz9ZMHy4pfBfMzl71GalnY5eHFDCyz6bgZAoGAPS4TGBMmlbXrRF6VDhri\\nYCGhGR3SKQ774SXU4roXB7UtQw4bIb+y+W8QDHMASxsQeVPSzbYkQgxPi1XCoeES\\nPBLnvH97frvmD94wDgdNKUXP+dAA+g3OLgV925BsB1jqwdwhTW80ILid7Y0nznrX\\nSvOWkrB8ZkZlcjrOeTL8NgI=\\n-----END PRIVATE KEY-----\\n'
-            })
-        }
-    ));
-,
-    databaseURL: 'https://memo-11ade.firebaseio.com'
-});*/
+
 
 /*
 firebase listeners:

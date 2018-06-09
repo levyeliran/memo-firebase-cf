@@ -14,11 +14,7 @@ export const onUserRegistered_setPendingEvents = functions.database
         console.log(`A User record was saved to database:`);
         console.log(fbData);
 
-        const phone = fbData.data.phone
-            .replace('(','')
-            .replace(')', '')
-            .replace('-', '')
-            .replace(' ', ''); //id is only the digits
+        const phone = fixPhoneNumber(fbData.data.phone); //id is only the digits
 
         return await admin.database()
             .ref(`userPendingEvents/${phone}`)
@@ -52,6 +48,15 @@ export const onUserRegistered_setPendingEvents = functions.database
                 return '';
             });
     });
+
+function fixPhoneNumber(phone:string =''){
+    return fixPhoneNumber(phone)
+        .replace('+','')
+        .replace('(','')
+        .replace(')', '')
+        .replace('-', '')
+        .replace(' ', '')
+}
 
 /*
 

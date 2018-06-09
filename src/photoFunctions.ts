@@ -180,8 +180,12 @@ export const onPhotoAdded_updateThumbnailURL = functions.database
 
         // writing to the Firebase Realtime Database.
         await admin.database()
-            .ref(`photoToEvent/${fbData.data.eventKey}/${fbData.data.photoKey}`)
-            .update(entity);
+            .ref(`photoToEvent/${fbData.data.eventKey}`)
+            .child(fbData.data.photoKey)
+            .update(entity).then(p=>{
+                console.log(`photo object was updated!`);
+                console.log(JSON.stringify(p));
+            });
 
         return entity;
     });
