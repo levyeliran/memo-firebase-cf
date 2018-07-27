@@ -61,6 +61,7 @@ exports.animation = functions.https.onRequest((req, res) => {
                           ${eventAnimation.script}
                         </head>
                         <body>
+                        ${eventAnimation.generalHTML}
                         </body>
                      </html>`);
 

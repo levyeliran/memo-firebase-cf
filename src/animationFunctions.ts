@@ -1,14 +1,93 @@
 import * as  functions from 'firebase-functions'
 import * as admin from 'firebase-admin'
-
 import {extractData} from "./extractDataHelper";
 import {FBData} from "./utilities/FBData";
-import {EventStatus} from "./utilities/EntityTypes";
 
+const ANIMATION_IN_TYPES = {
+    bounceInLeft: 'bounceInLeft',
+    fadeIn: 'fadeIn',
+    fadeInLeftBig: 'fadeInLeftBig',
+    fadeInUpBig: 'fadeInUpBig',
+    rotateIn: 'rotateIn',
+    rotateInUpRight: 'rotateInUpRight',
+    rollIn: 'rollIn',
+    zoomInLeft: 'zoomInLeft',
+    slideInDown: 'slideInDown',
+    bounceInRight: 'bounceInRight',
+    fadeInDown: 'fadeInDown',
+    fadeInRight: 'fadeInRight',
+    rotateInDownLeft: 'rotateInDownLeft',
+    zoomInRight: 'zoomInRight',
+    slideInLeft: 'slideInLeft',
+    bounceIn: 'bounceIn',
+    bounceInUp: 'bounceInUp',
+    fadeInDownBig: 'fadeInDownBig',
+    fadeInRightBig: 'fadeInRightBig',
+    flipInX: 'flipInX',
+    lightSpeedIn: 'lightSpeedIn',
+    rotateInDownRight: 'rotateInDownRight',
+    zoomIn: 'zoomIn',
+    zoomInUp: 'zoomInUp',
+    slideInRight: 'slideInRight',
+    bounceInDown: 'bounceInDown',
+    fadeInLeft: 'fadeInLeft',
+    fadeInUp: 'fadeInUp',
+    flipInY: 'flipInY',
+    rotateInUpLeft: 'rotateInUpLeft',
+    jackInTheBox: 'jackInTheBox',
+    zoomInDown: 'zoomInDown',
+    slideInUp: 'slideInUp'
+};
 
-///////////////////////////
-//check how to add at the end of the event an animation!!!
-////////////////////////////////
+const ANIMATION_OUT_TYPES = {
+    bounceOutDown: 'bounceOutDown',
+    fadeOutLeft: 'fadeOutLeft',
+    fadeOutUp: 'fadeOutUp',
+    flipOutX: 'flipOutX',
+    rotateOutUpLeft: 'rotateOutUpLeft',
+    zoomOutDown: 'zoomOutDown',
+    slideOutDown: 'slideOutDown',
+    bounceOutLeft: 'bounceOutLeft',
+    fadeOut: 'fadeOut',
+    fadeOutLeftBig: 'fadeOutLeftBig',
+    fadeOutUpBig: 'fadeOutUpBig',
+    flipOutY: 'flipOutY',
+    rotateOut: 'rotateOut',
+    rotateOutUpRight: 'rotateOutUpRight',
+    rollOut: 'rollOut',
+    zoomOutLeft: 'zoomOutLeft',
+    slideOutLeft: 'slideOutLeft',
+    bounceOutRight: 'bounceOutRight',
+    fadeOutDown: 'fadeOutDown',
+    fadeOutRight: 'fadeOutRight',
+    rotateOutDownLeft: 'rotateOutDownLeft',
+    zoomOutRight: 'zoomOutRight',
+    slideOutRight: 'slideOutRight',
+    bounceOut: 'bounceOut',
+    bounceOutUp: 'bounceOutUp',
+    fadeOutDownBig: 'fadeOutDownBig',
+    fadeOutRightBig: 'fadeOutRightBig',
+    lightSpeedOut: 'lightSpeedOut',
+    rotateOutDownRight: 'rotateOutDownRight',
+    zoomOut: 'zoomOut',
+    zoomOutUp: 'zoomOutUp',
+    slideOutUp: 'slideOutUp',
+    hinge: 'hinge'
+};
+
+const ANIMATION_GIFS_TYPES = {
+    flip: 'flip',
+    bounce: 'bounce',
+    shake: 'shake',
+    wobble: 'wobble',
+    flash: 'flash',
+    headShake: 'headShake',
+    jello: 'jello',
+    pulse: 'pulse',
+    swing: 'swing',
+    rubberBand: 'rubberBand',
+    tada: 'tada'
+};
 
 export const onEvenAnimationStatusCreated_createAnimation = functions.database
     .ref('pendingEventAnimation/{eventId}')
@@ -72,13 +151,12 @@ export const onEvenAnimationStatusCreated_createAnimation = functions.database
             });
     });
 
-
 const createAnimation = (animationConfig: any) => {
-    const resultAnimation = {
+    const resultAnimation:any = {
         appIntro: getAppAnimationIntro(),
         eventIntro: getEventAnimationIntro(animationConfig),
         photosAnimationContent: {},
-        appCompletion: getAppAnimationCompletion()
+        appCompletion: {}
     };
     //create the event body here
 
@@ -91,15 +169,20 @@ const createAnimation = (animationConfig: any) => {
 
     const timeLinePhotos = getAnimationPhotosTimeline(animationConfig);
     const keys = Object.keys(timeLinePhotos);
-    const photosAnimation: any =
+    resultAnimation.photosAnimationContent = getPhotosAnimationContent(keys.map(k => timeLinePhotos[k]));
+    //we need to calculate the delay time since the event photos animation is dynamic
+    resultAnimation.appCompletion = getAppAnimationCompletion(
+        resultAnimation.photosAnimationContent.totalTimeInMillisecond +
+        resultAnimation.photosAnimationContent.delayTimeInMillisecond)
 
-
-        resultAnimation.photosAnimationContent = getPhotosAnimationContent(keys.map(k => timeLinePhotos[k]));
-
+    const delayDuration = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
     return {
         eventKey: animationConfig.eventKey,
-        style: getAnimationStyleTag(),
+        style: getAnimationStyleTag(delayDuration.map(sec => {
+            return getAnimationDelayCss(sec).style + getAnimationDurationCss(sec).style;
+        })),
         script: getAnimationScriptTag(resultAnimation),
+        generalHTML: '',//todo - add here all common gifs & emojies.
         animationData: resultAnimation
     };
 
@@ -107,24 +190,50 @@ const createAnimation = (animationConfig: any) => {
 
 const getAppAnimationIntro = (): any => {
     //display intro of the app animation
-    //4 seconds
-    const animationConfig = {
-        totalTimeInMillisecond: 4000,
-        delayTimeInMillisecond: 200,
-        animationContent: {}
-    };
-
-    return animationConfig;
-};
-
-const getAppAnimationCompletion = (): any => {
-    //display completion of the app animation
     //7 seconds
     const animationConfig = {
         totalTimeInMillisecond: 7000,
         delayTimeInMillisecond: 0,
-        animationContent: {}
+        animationContent: {
+            animIntroAppLogo: {
+                elementId: "animIntroAppLogo",
+                delayTimeInMillisecond: 0,
+                durationTimeInMillisecond: 2000,
+                elementStyle: getElementStyle({id: "animIntroAppLogo"}),
+                element: getElementHtmlTag({
+                    id: "animIntroAppLogo",
+                    url: getAnimationImgs().find(img => img.name === "appIcon").src
+                }),
+                animationScript: getCustomElementScript("animIntroAppLogo", 2000).script
+            },
+            animIntroAppDesc: {
+                elementId: "animIntroAppDesc",
+                delayTimeInMillisecond: 2000,
+                durationTimeInMillisecond: 2000,
+                elementStyle: getElementStyle({id: "animIntroAppDesc"}),
+                element:
+                    (`<div id="animIntroAppDesc" class="app-name-wrapper">
+                        <div class="app-name">Memories</div>
+                        <div class="app-description">For your special moments</div>
+                    </div>`),
+                animationScript: getCustomElementScript("animIntroAppDesc", 2000).script
+            },
+            animIntroCountdownGif: {
+                elementId: "animIntroCountdownGif",
+                delayTimeInMillisecond: 4000,
+                durationTimeInMillisecond: 3000,
+                elementStyle: getElementStyle({id: "animIntroCountdownGif"}),
+                element: getElementHtmlTag({
+                    id: "animIntroCountdownGif",
+                    url: getAnimationImgs().find(img => img.name === "countdown321").src
+                }),
+                animationScript: getCustomElementScript("animIntroCountdownGif", 3000).script
+            }
+        }
     };
+    //app logo "presents..." - 2 sec
+    // app desc - 2 sec
+    //3,2,1 animation - 3 sec
 
     return animationConfig;
 };
@@ -136,12 +245,76 @@ const getEventAnimationIntro = (data: any): any => {
     //event docation
     //description
 
-    //15 seconds
+    //12 seconds
     const animationConfig = {
-        totalTimeInMillisecond: 15000,
-        delayTimeInMillisecond: 4000,
-        animationContent: {}
+        totalTimeInMillisecond: 12000,
+        delayTimeInMillisecond: 7000,
+        animationContent: {
+            eventIntroName: {
+                elementId: "eventIntroName",
+                delayTimeInMillisecond: 0,
+                durationTimeInMillisecond: 3000,
+                elementStyle: getElementStyle({id: "eventIntroName"}),
+                element:
+                    (`<div id="eventIntroName" class="event-name-wrapper">
+                        <div class="event-name">${data.event.name}</div>
+                    </div>`),
+                animationScript: getCustomElementScript("eventIntroName", 3000).script
+            },
+            eventIntroSaveTheDate: {
+                elementId: "eventIntroSaveTheDate",
+                delayTimeInMillisecond: 3000,
+                durationTimeInMillisecond: 2000,
+                elementStyle: getElementStyle({id: "eventIntroSaveTheDate"}),
+                element: getElementHtmlTag({
+                    id: "eventIntroSaveTheDate",
+                    url: getAnimationImgs().find(img => img.name === "saveTheDate").src
+                }),
+                animationScript: getCustomElementScript("eventIntroSaveTheDate", 2000).script
+            },
+            eventIntroEventDate: {
+                elementId: "eventIntroEventDate",
+                delayTimeInMillisecond: 5000,
+                durationTimeInMillisecond: 3000,
+                elementStyle: getElementStyle({id: "eventIntroEventDate"}),
+                element:
+                    (`<div id="eventIntroEventDate" class="event-date-wrapper">
+                        <div class="event-date">${(new Date(data.event.startDate)).toLocaleDateString()}</div>
+                    </div>`),
+                animationScript: getCustomElementScript("eventIntroEventDate", 3000).script
+            },
+            eventIntroEventType: {
+                elementId: "eventIntroEventType",
+                delayTimeInMillisecond: 8000,
+                durationTimeInMillisecond: 2000,
+                elementStyle: getElementStyle({id: "eventIntroEventType"}),
+                element:
+                    (`<div id="eventIntroEventType" class="event-type-wrapper">
+                        <div class="r1">The best</div>
+                        <div class="r2">Event</div>
+                        <div class="r3">Of the year!!!</div>
+                    </div>`),
+                animationScript: getCustomElementScript("eventIntroEventType", 2000).script
+            },
+            eventIntroLetsParty: {
+                elementId: "eventIntroLetsParty",
+                delayTimeInMillisecond: 10000,
+                durationTimeInMillisecond: 2000,
+                elementStyle: getElementStyle({id: "eventIntroLetsParty"}),
+                element: getElementHtmlTag({
+                    id: "eventIntroLetsParty",
+                    url: getAnimationGifs().find(img => img.name === "teenagerDancer").src
+                }),
+                animationScript: getCustomElementScript("eventIntroLetsParty", 2000).script
+            }
+        }
     };
+
+    //event name //3 sec
+    //save the date - 2 sec
+    //date - 3 sec
+    //event type "wedding of the year" - 2 sec
+    //lets party!!! - 2 sec
 
     return animationConfig;
 };
@@ -238,7 +411,8 @@ const getPhotoGifsAndTagsAnimationConfiguration = (emojiTags: any) => {
         let result = {
             categoryKey: st.categoryKey,
             tags: st.tags,
-            availableGifs: animationGifs.filter(ag => ag.categoryKey == st.categoryKey)
+            availableGifs: animationGifs.filter(ag => ag.categoryKey == st.categoryKey),
+            vipUserNames: []
         };
 
         const vipUserNames = st.tags.filter(t => t.isVipUser).map(t => t.creatorName);
@@ -256,6 +430,65 @@ const getPhotosAnimationContent = (timelinePhotos: any): any => {
         delayTimeInMillisecond: 19000, //app intro + event intro time
         animationContent: {}
     };
+
+    //loop over timeline collection, which has for every step:
+    //isPickTime: boolean
+    //photos: array of:
+    /*{
+           id:"",
+           url:"",
+           creatorName:"",
+           isVipUser:bool,
+           gifsAndTags:
+                {
+                    categoryKey: "",
+                    tags:
+                        {
+                            photoKey: "",
+                            emojiTags:
+                            {
+                                  eventKey:string;
+                                  photoKey:string;
+                                  emojiTagKey:string;
+                                  emojiTagCategoryKey:string;
+                                  isVipUser:boolean;
+                                  creatorKey:string;
+                                  creatorName:string;
+                                  creationDate:string;
+                            }
+                        }
+                    availableGifs:
+                        {
+                            name: "",
+                            src: "",
+                            categoryKey: num,
+                            categoryName: ""
+                         }
+                    vipUserNames:[""]
+                };
+           isDisplayUsersTags:bool
+       }*/
+
+    const timelineKeys = Object.keys(timelinePhotos);
+    timelineKeys.forEach(tlk => {
+        const stepConf = timelineKeys[tlk];
+        let delay = 0;
+        stepConf.photos.forEach(p => {
+            const animScript = getElementScript(p, stepConf.isPickTime);
+            animationConfig.animationContent[p.id] = {
+                elementId: p.id,
+                delayTimeInMillisecond: delay,
+                durationTimeInMillisecond: animScript.duration - 200,
+                elementStyle: getElementStyle(p, stepConf.isPickTime),
+                element: getElementHtmlTag(p),
+                animationScript: animScript.script
+            };
+            //calculate the delay for the next photo display
+            delay += animScript.duration;
+            //add the duration for total time
+            animationConfig.totalTimeInMillisecond += animScript.duration;
+        });
+    });
 
     /*    const animationConfig = {
       totalTimeInMillisecond: 13000,
@@ -287,50 +520,204 @@ const getPhotosAnimationContent = (timelinePhotos: any): any => {
     return animationConfig;
 };
 
-const getElementAnimationScript = (animatedPhoto: any) => {
-
-    //data.id
-    //data.animationConfig
-
-    //result:
-    /*    {
-            elementId: "firstImg",
-            delayInMillisecond: 0,
-            elementStyle: '#firstImg{width: 100%; position: absolute; border: 5px solid lightblue;}',
-            element:'<img id="firstImg" class="hidden" src="https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/thumb_-L129T5PnR7Va49yYXrR%5D52w0SkcAASNacMNtQtcc5o4ANu43%5D-LAbgllhFZTOB-0S3CQE.png?alt=media&token=c953847d-99f4-4400-a92c-4d453fd3a00b" />',
-            animationScript: '$("#firstImg").animateCss("animated jackInTheBox duration2s", function(){' +
-        '$("#firstImg").animateCss("pulse duration2s", function(){' +
-        '$("#firstImg").animateCss("zoomOutLeft duration2s", function(){$("#firstImg").remove();});' +
-        '});' +
-        '});'
+const getAppAnimationCompletion = (delay): any => {
+    //display completion of the app animation
+    //7 seconds
+    const animationConfig = {
+        totalTimeInMillisecond: 5000,
+        delayTimeInMillisecond: delay + 200,
+        animationContent: {
+            animCompletionDesc: {
+                elementId: "animCompletionDesc",
+                delayTimeInMillisecond: 0,
+                durationTimeInMillisecond: 2000,
+                elementStyle: getElementStyle({id: "animCompletionDesc"}),
+                element:
+                    (`<div id="animCompletionDesc" class="app-completion-desc-wrapper">
+                        <div class="r1">Until next time</div>
+                        <div class="r2">Keep smiling!</div>
+                    </div>`),
+                animationScript: getCustomElementScript("animCompletionDesc", 2000).script
+            },
+            animCompletionAppLogo: {
+                elementId: "animCompletionAppLogo",
+                delayTimeInMillisecond: 2000,
+                durationTimeInMillisecond: 3000,
+                elementStyle: getElementStyle({id: "animCompletionAppLogo"}),
+                element: getElementHtmlTag({
+                    id: "animCompletionAppLogo",
+                    url: getAnimationImgs().find(img => img.name === "appIcon").src
+                }),
+                animationScript: getCustomElementScript("animCompletionAppLogo", 2000).script
+            }
         }
-        */
-    //data.elementId
-    //data.delayInMillisecond
-    //data.elementStyle
-    //data.element
-    //data.animationScript
+    };
+
+    //until next time - 2 sec
+    //app logo -  3 sec
+
+    return animationConfig;
 };
 
-const getAnimationElement = (id, photoSrc) => {
+const getRemoveElementHandler = (animatedPhoto: any) => {
+    return `function(){$("#${animatedPhoto.id}").remove();}`;
+}
 
+const getTagsAnimation = (tags: any) => {
+    return `    
+    var tagsData = ${tags};
+    var inc = 0;
+    var tagsInterval = setInterval(function(){
+        if(inc < tagsData.length){
+           var tag = tagsData[inc];
+           $("#").src = tag.emojiTagUrl;
+           $("#").innerHTML = tag.creatorName;
+           if(tag.isVipUser){
+               $("#").addClass("vipClass");
+           } 
+        }
+        inc++;
+    },1000);
+    
+    //display the tag container
+    $("#").addClass("displayTag");
+    
+    //hide the tag container
+    var tagsTimeout = setTimeout(function(){ 
+        $("#").removeClass("displayTag");
+        $("#").addClass("vipClass")
+        clearTimeout(tagsTimeout);
+        clearInterval(tagsInterval);
+    }, ${tags.length*1000 + 1000});
+    `;
+};
+
+const getGifsAnimation = (gifs: any) => {
+    return `    
+    var gifsData = ${gifs};
+    if(gifsData.length >= 1){
+        //display the gif
+        var gif1InTimeout = setTimeout(function(){ 
+            $("#gifsData[0].name").addClass("displayGif");
+            clearTimeout(gif1InTimeout);
+        }, 10);
+        //hide the gif
+        var gif1OutTimeout = setTimeout(function(){ 
+            $("#gifsData[0].name").removeClass("displayGif");
+            clearTimeout(gif1OutTimeout);
+        }, 1500);
+        
+    }
+    
+    if(gifsData.length >= 2){
+        //display the gif
+        var gif2InTimeout = setTimeout(function(){ 
+            $("#gifsData[1].name").addClass("displayGif");
+            clearTimeout(gif2InTimeout);
+        }, 1000);
+        
+        //hide the gif
+        var gif2OutTimeout = setTimeout(function(){ 
+            $("#gifsData[1].name").removeClass("displayGif");
+            clearTimeout(gif2OutTimeout);
+        }, 3300);
+    }
+    `;
+};
+
+const getElementScript = (animatedPhoto: any, isPickTime = false) => {
+    let duration = 0;
+    const inOutDuration = isPickTime ? 1: 2;
+    const inOutDurationClass = getAnimationDurationCss(inOutDuration);
+    let hasAdditionalAnimation = false;
+
+    const inAnimation = getInAnimationType();
+    duration += inOutDuration*1000;
+
+    const outAnimation = getOutAnimationType();
+    duration += inOutDuration*1000;
+
+    //add preview animation
+    let script = `$(#${animatedPhoto.id}).animateCss("animated ${inAnimation} ${inOutDurationClass.className}", `;
+
+    //add additional animations
+    if(!isPickTime &&
+        (animatedPhoto.gifsAndTags.tags.length ||
+            animatedPhoto.gifsAndTags.availableGifs.length ||
+            animatedPhoto.gifsAndTags.vipUserNames.length)){
+        const tagsCount = animatedPhoto.gifsAndTags.tags.length + 1;
+        hasAdditionalAnimation = true;
+        const additionalDurationClass = getAnimationDurationCss(tagsCount);
+        const additionalAnimation = getGeneralAnimationType();
+        script += `function(){ 
+        ${getTagsAnimation(animatedPhoto.gifsAndTags.tags)}
+        ${getGifsAnimation(animatedPhoto.gifsAndTags.availableGifs)}
+        $(#${animatedPhoto.id}).animateCss("${additionalAnimation} ${additionalDurationClass.className}", `;
+
+        duration += (tagsCount > 3.5 ? tagsCount : 3.5) * 1000;
+    }
+
+    //add hide animation
+    //add remove element
+    script += `function(){ $(#${animatedPhoto.id}).animateCss("${outAnimation} ${inOutDurationClass.className}", 
+        ${getRemoveElementHandler(animatedPhoto)});`;
+
+    //add additional animations closing tags
+    if(hasAdditionalAnimation){
+        //add additional animation closing tag
+        script += '});';
+    }
+
+    //add animation closing tag
+    script += '});';
+
+    return {
+        script: script,
+        duration: duration
+    };
+};
+
+const getCustomElementScript = (elementId: any, elementDuration = 0) => {
+    let duration = 0;
+    duration += 400; //in out duration
+    const additionalDuration = getAnimationDurationCss(elementDuration);
+
+
+    //add preview animation
+    let script = `$(#${elementId}).animateCss("animated ${ANIMATION_IN_TYPES.bounceIn} durationDot2", `;
+
+    script += `function(){ $(#${elementId}).animateCss("${ANIMATION_GIFS_TYPES.pulse} ${additionalDuration.className}", `;
+
+    //add hide animation
+    //add remove element
+    script += `function(){ $(#${elementId}).animateCss("${ANIMATION_OUT_TYPES.bounceOut} durationDot2", 
+        ${getRemoveElementHandler({id: elementId})});`;
+
+    //add additional animations closing tags
+    script += '});';
+
+    //add animation closing tag
+    script += '});';
+
+    return {
+        script: script,
+        duration: duration
+    };
+};
+
+const getElementStyle = (animatedPhoto: any, isPickTime = false): string => {
+    let style = `#${animatedPhoto.id}{
+        width: 100%; 
+        position: absolute;
+    }`;
+    return style;
+};
+
+const getElementHtmlTag = (animatedPhoto: any) => {
     return `<img 
-                id="img_${id}" 
+                id="${animatedPhoto.id}" 
                 class="animation-img hidden" 
-                src="${photoSrc}" />`;
-
-
-    /* {
-         elementId: "firstImg",
-             delayInMillisecond: 0,
-             elementStyle: '#firstImg{width: 100%; position: absolute; border: 5px solid lightblue;}',
-             element:'<img id="firstImg" class="hidden" src="https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/thumb_-L129T5PnR7Va49yYXrR%5D52w0SkcAASNacMNtQtcc5o4ANu43%5D-LAbgllhFZTOB-0S3CQE.png?alt=media&token=c953847d-99f4-4400-a92c-4d453fd3a00b" />',
-             animationScript: '$("#firstImg").animateCss("animated jackInTheBox duration2s", function(){' +
-         '$("#firstImg").animateCss("pulse duration2s", function(){' +
-         '$("#firstImg").animateCss("zoomOutLeft duration2s", function(){$("#firstImg").remove();});' +
-         '});' +
-         '});'
-     }*/
+                src="${animatedPhoto.url}" />`;
 };
 
 const getAnimationStyleTag = (customCss = null) => {
@@ -355,6 +742,65 @@ const getAnimationStyleTag = (customCss = null) => {
         .animation-img {
             width: 100%; 
             position: absolute;
+        }
+        .durationDot2{
+            animation-duration: .2s;
+        }
+        .durationDot5{
+            animation-duration: .5s;
+        }
+        .durationDot7{
+            animation-duration: .7s;
+        }
+        .app-name-wrapper {
+            text-align: left;
+            position: relative;
+            left: 25%;
+            top: -6%;
+        }
+        .app-name-wrapper .app-name {
+          color: white;
+          font-size: 40px;
+          text-shadow: 0px 0px 2px white;
+          font-weight: 900;
+          text-decoration: blink;
+        }
+        .app-name-wrapper .app-description {
+          color: white;
+          font-size: 11px;
+          font-weight: 900;
+          padding-bottom: 12px;
+        }
+        .event-name-wrapper{
+            text-align: center;
+            color: white;
+            font-size: 40px;
+            text-shadow: 0px 0px 2px white;
+            font-weight: 900;
+        }
+        .event-name-wrapper .event-name{
+        
+        }
+        .event-date-wrapper{
+            text-align: center;
+            color: white;
+            font-size: 60px;
+            text-shadow: 0px 0px 2px white;
+            font-weight: 900;
+        }
+        .event-type-wrapper{
+            text-align: center;
+            color: white;
+            font-size: 40px;
+            text-shadow: 0px 0px 2px white;
+            font-weight: 900;
+        }
+        .app-completion-desc-wrapper{
+            text-align: center;
+            color: white;
+            font-size: 40px;
+            text-shadow: 0px 0px 2px white;
+            font-weight: 900;
         }
         ${customCss}
     </style>`
@@ -740,19 +1186,47 @@ const getAnimationGifs = (): any => {
         categoryKey: 4,
         categoryName: "party"
     }];
+    return gifs;
+};
+
+const getAnimationImgs = (): any => {
+    const imgs = [{
+        name: "appIcon",
+        src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/imgs%2FappIcon.png?alt=media&token=dfc1ca78-6fa9-4f4c-a809-654cbb0e0fd4",
+        categoryKey: -1,
+        categoryName: "general"
+    },{
+        name: "saveTheDate",
+        src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/imgs%2FsaveTheDateorg.png?alt=media&token=4bc81d6e-eb39-4dfe-9950-255d286203ac",
+        categoryKey: -1,
+        categoryName: "general"
+    },{
+        name: "countdown321",
+        src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2Fcountdown321.gif?alt=media&token=fd96ca29-8e17-4dd6-9f0d-21b4c54e157b",
+        categoryKey: -1,
+        categoryName: "general"
+    },{
+        name: "blueSquare",
+        src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/imgs%2FblueSquare.png?alt=media&token=f80b2cc5-e666-439b-a7d2-3e80e02a4c36",
+        categoryKey: -1,
+        categoryName: "general"
+    }];
+    return imgs;
 };
 
 const getAnimationDelayCss = (duration = 1) => {
     return {
         className: `delay${duration}s`,
-        style: `.delay${duration}s {animation-delay: ${duration}s;}`
+        style: `.delay${duration}s {animation-delay: ${duration}s;}
+        `
     };
 };
 
 const getAnimationDurationCss = (duration = 1) => {
     return {
-        className: `.duration${duration}s`,
-        style: `.duration${duration}s {animation-duration: ${duration}s;}`
+        className: `duration${duration}s`,
+        style: `.duration${duration}s {animation-duration: ${duration}s;}
+        `
     };
 };
 
@@ -765,3 +1239,20 @@ const getAnimationRotationCss = (deg = 0) => {
     };
 };
 
+const getInAnimationType = () => {
+    const inKeys = Object.keys(ANIMATION_IN_TYPES);
+    const rnd = Math.floor((Math.random() * inKeys.length) + 1);
+    return inKeys[rnd]
+};
+
+const getOutAnimationType = ()=> {
+    const inKeys = Object.keys(ANIMATION_OUT_TYPES);
+    const rnd = Math.floor((Math.random() * inKeys.length) + 1);
+    return inKeys[rnd]
+};
+
+const getGeneralAnimationType = () => {
+    const inKeys = Object.keys(ANIMATION_GIFS_TYPES);
+    const rnd = Math.floor((Math.random() * inKeys.length) + 1);
+    return inKeys[rnd]
+};
