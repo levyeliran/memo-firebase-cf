@@ -91,22 +91,27 @@ const ANIMATION_GIFS_TYPES = {
 
 export const onEvenAnimationStatusCreated_createAnimation = functions.database
     .ref('pendingEventAnimation/{eventId}')
-    .onCreate(async (ea: any) => {
+    .onUpdate(async (ea: any) => {
 
         //extract relevant data and add log
         const fbData: FBData = extractData(ea);
         console.log(`An Pending Event Animation record was saved to database:`);
         console.log(fbData);
 
+        if(!fbData.data.eventKey){
+            console.log(`Event id is missing, EXIT.`);
+            return null;
+        }
+
         //get event animation and check if 15 minutes has been passed
-        console.log(`check for existing event animation ${fbData.data.eventKey}: `);
+        console.log(`Check for existing event animation ${fbData.data.eventKey}: `);
 
         return admin.database()
             .ref(`eventAnimation/${fbData.data.eventKey}`)
             .once('value')
             .then(eventAnimation => {
                 let animation: any = {};
-                if (eventAnimation) {
+                if (eventAnimation && eventAnimation.creationDate) {
                     console.log(`OLD event animation`);
                     console.log(JSON.stringify(eventAnimation));
 
@@ -114,14 +119,16 @@ export const onEvenAnimationStatusCreated_createAnimation = functions.database
                     const timeGap = 1000 * 60 * 15; //set 15 min gap
                     if ((new Date()).getTime() - animationCreationDate.getTime() >= timeGap) {
                         //create the updated animation
+                        console.log(`Update event animation...`);
                         animation = createAnimation(fbData.data);
                     }
-
-                    console.log(`no need to re-create event animation... 15Min from previous creation didn't passed yet`);
-                    return null;
+                    else {
+                        console.log(`No need to re-create event animation... 15Min from previous creation didn't passed yet`);
+                        return null;
+                    }
                 }
                 else {
-                    console.log(`create event animation FIRST TIME!`);
+                    console.log(`Create event animation FIRST TIME!`);
 
                     //create the updated animation
                     animation = createAnimation(fbData.data);
@@ -129,17 +136,22 @@ export const onEvenAnimationStatusCreated_createAnimation = functions.database
 
                 //add the animation creation date
                 animation.creationDate = (new Date()).toString();
-                console.log(`write event animation ${animation.eventKey} to db`);
+                console.log(`Write event animation ${animation.eventKey} to db`);
                 console.log(JSON.stringify(animation));
 
                 admin.database()
                     .ref(`eventAnimation/${animation.eventKey}`)
                     .update(animation).then(e => {
-                    console.log(`Event Animation: ${animation.eventKey} was created!`);
+                    if (!eventAnimation){
+                        console.log(`Event Animation: ${animation.eventKey} was CREATED!`);
+                        console.log(JSON.stringify(e));
+                        return;
+                    }
+                    console.log(`Event Animation: ${animation.eventKey} was UPDATED!`);
                     console.log(JSON.stringify(e));
                 });
 
-                console.log(`updating event animation status ${animation.eventKey} to db`);
+                console.log(`Updating event animation status ${animation.eventKey} to db`);
                 admin.database()
                     .ref(`events/${animation.eventKey}`)
                     .set({hasAnimation: true}).then(e => {
@@ -159,8 +171,6 @@ const createAnimation = (animationConfig: any) => {
         appCompletion: {}
     };
     //create the event body here
-
-    const eventIntro: any = getEventAnimationIntro(animationConfig);
     //total sound time is 4:11
     //configure timeline (based on creation time vs count)
     //get time per photo (based on creation time, user type, num of tags, tags meaning, additional effects)
@@ -234,7 +244,8 @@ const getAppAnimationIntro = (): any => {
     //app logo "presents..." - 2 sec
     // app desc - 2 sec
     //3,2,1 animation - 3 sec
-
+    console.log('App intro was created:');
+    console.log(JSON.stringify(animationConfig));
     return animationConfig;
 };
 
@@ -257,7 +268,7 @@ const getEventAnimationIntro = (data: any): any => {
                 elementStyle: getElementStyle({id: "eventIntroName"}),
                 element:
                     (`<div id="eventIntroName" class="event-name-wrapper">
-                        <div class="event-name">${data.event.name}</div>
+                        <div class="event-name">${data.event.title}</div>
                     </div>`),
                 animationScript: getCustomElementScript("eventIntroName", 3000).script
             },
@@ -315,7 +326,8 @@ const getEventAnimationIntro = (data: any): any => {
     //date - 3 sec
     //event type "wedding of the year" - 2 sec
     //lets party!!! - 2 sec
-
+    console.log('Event intro was created:');
+    console.log(JSON.stringify(animationConfig));
     return animationConfig;
 };
 
@@ -325,7 +337,7 @@ const getAnimationPhotosTimeline = (data: any) => {
     const timeline = {};
     //create timeline of Minimum 5 minutes (we need at least 6 places in time line)
     let skip = eventCurrentDurationInMinutes / 6 > 6 ? 5 : (eventCurrentDurationInMinutes / 6) + 1;
-    console.log("timeline skips: ", skip);
+    console.log("Timeline skips value: ", skip);
 
     let time = new Date(data.event.startDate);
     let timeKey = time.toString();
@@ -360,7 +372,7 @@ const getAnimationPhotosTimeline = (data: any) => {
             };
         }
     });
-    console.log("photos timeline: ");
+    console.log("Photos timeline was created: ");
     console.log(JSON.stringify(timeline));
     return timeline;
 };
@@ -517,6 +529,9 @@ const getPhotosAnimationContent = (timelinePhotos: any): any => {
         }
       }
     };*/
+
+    console.log('Event photos animation was created:');
+    console.log(JSON.stringify(animationConfig));
     return animationConfig;
 };
 
@@ -555,7 +570,8 @@ const getAppAnimationCompletion = (delay): any => {
 
     //until next time - 2 sec
     //app logo -  3 sec
-
+    console.log('App completion was created:');
+    console.log(JSON.stringify(animationConfig));
     return animationConfig;
 };
 
