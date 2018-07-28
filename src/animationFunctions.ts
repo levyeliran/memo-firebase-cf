@@ -244,13 +244,13 @@ const getAppAnimationIntro = (): any => {
     //display intro of the app animation
     //7 seconds
     const animationConfig = {
-        totalTimeInMillisecond: 7000 ,
+        totalTimeInMillisecond: 10000 ,
         delayTimeInMillisecond: 0,
         animationContent: {
             animIntroAppLogo: {
                 elementId: "animIntroAppLogo",
                 delayTimeInMillisecond: 0,
-                durationTimeInMillisecond: 2000 ,
+                durationTimeInMillisecond: 3000 ,
                 elementStyle: getElementStyle({id: "animIntroAppLogo"}),
                 element: getElementHtmlTag({
                     id: "animIntroAppLogo",
@@ -260,8 +260,8 @@ const getAppAnimationIntro = (): any => {
             },
             animIntroAppDesc: {
                 elementId: "animIntroAppDesc",
-                delayTimeInMillisecond: 2000 ,
-                durationTimeInMillisecond: 2000 ,
+                delayTimeInMillisecond: 3000 ,
+                durationTimeInMillisecond: 3000 ,
                 elementStyle: getElementStyle({id: "animIntroAppDesc"}),
                 element:
                     (`<div id="animIntroAppDesc" class="app-name-wrapper">
@@ -272,8 +272,8 @@ const getAppAnimationIntro = (): any => {
             },
             animIntroCountdownGif: {
                 elementId: "animIntroCountdownGif",
-                delayTimeInMillisecond: 4000 ,
-                durationTimeInMillisecond: 3000 ,
+                delayTimeInMillisecond: 6000 ,
+                durationTimeInMillisecond: 4000 ,
                 elementStyle: getElementStyle({id: "animIntroCountdownGif"}),
                 element: getElementHtmlTag({
                     id: "animIntroCountdownGif",
@@ -300,13 +300,13 @@ const getEventAnimationIntro = (data: any): any => {
 
     //12 seconds
     const animationConfig = {
-        totalTimeInMillisecond: 12000 ,
-        delayTimeInMillisecond: 7000 ,
+        totalTimeInMillisecond: 17000 ,
+        delayTimeInMillisecond: 10000 ,
         animationContent: {
             eventIntroName: {
                 elementId: "eventIntroName",
                 delayTimeInMillisecond: 0,
-                durationTimeInMillisecond: 3000 ,
+                durationTimeInMillisecond: 4000 ,
                 elementStyle: getElementStyle({id: "eventIntroName"}),
                 element:
                     (`<div id="eventIntroName" class="event-name-wrapper">
@@ -316,8 +316,8 @@ const getEventAnimationIntro = (data: any): any => {
             },
             eventIntroSaveTheDate: {
                 elementId: "eventIntroSaveTheDate",
-                delayTimeInMillisecond: 3000 ,
-                durationTimeInMillisecond: 2000 ,
+                delayTimeInMillisecond: 4000 ,
+                durationTimeInMillisecond: 3000 ,
                 elementStyle: getElementStyle({id: "eventIntroSaveTheDate"}),
                 element: getElementHtmlTag({
                     id: "eventIntroSaveTheDate",
@@ -327,8 +327,8 @@ const getEventAnimationIntro = (data: any): any => {
             },
             eventIntroEventDate: {
                 elementId: "eventIntroEventDate",
-                delayTimeInMillisecond: 5000 ,
-                durationTimeInMillisecond: 3000 ,
+                delayTimeInMillisecond: 7000 ,
+                durationTimeInMillisecond: 4000 ,
                 elementStyle: getElementStyle({id: "eventIntroEventDate"}),
                 element:
                     (`<div id="eventIntroEventDate" class="event-date-wrapper">
@@ -338,8 +338,8 @@ const getEventAnimationIntro = (data: any): any => {
             },
             eventIntroEventType: {
                 elementId: "eventIntroEventType",
-                delayTimeInMillisecond: 8000 ,
-                durationTimeInMillisecond: 2000 ,
+                delayTimeInMillisecond: 11000 ,
+                durationTimeInMillisecond: 3000 ,
                 elementStyle: getElementStyle({id: "eventIntroEventType"}),
                 element:
                     (`<div id="eventIntroEventType" class="event-type-wrapper">
@@ -351,8 +351,8 @@ const getEventAnimationIntro = (data: any): any => {
             },
             eventIntroLetsPartyGif: {
                 elementId: "eventIntroLetsPartyGif",
-                delayTimeInMillisecond: 10000 ,
-                durationTimeInMillisecond: 2000 ,
+                delayTimeInMillisecond: 14000 ,
+                durationTimeInMillisecond: 3000 ,
                 elementStyle: getElementStyle({id: "eventIntroLetsPartyGif"}),
                 element: getElementHtmlTag({
                     id: "eventIntroLetsPartyGif",
@@ -491,7 +491,7 @@ const getPhotosAnimationContent = (timelinePhotos: any): any => {
 
     const animationConfig = {
         totalTimeInMillisecond: 0,
-        delayTimeInMillisecond: 19000 , //app intro + event intro time
+        delayTimeInMillisecond: 27000 , //app intro + event intro time
         animationContent: {}
     };
 
@@ -601,13 +601,13 @@ const getAppAnimationCompletion = (delay): any => {
     //display completion of the app animation
     //7 seconds
     const animationConfig = {
-        totalTimeInMillisecond: 5000 ,
-        delayTimeInMillisecond: delay + 200,
+        totalTimeInMillisecond: 6000 ,
+        delayTimeInMillisecond: delay + 500,
         animationContent: {
             animCompletionDesc: {
                 elementId: "animCompletionDesc",
                 delayTimeInMillisecond: 0,
-                durationTimeInMillisecond: 2000,
+                durationTimeInMillisecond: 3000,
                 elementStyle: getElementStyle({id: "animCompletionDesc"}),
                 element:
                     (`<div id="animCompletionDesc" class="app-completion-desc-wrapper">
@@ -618,7 +618,7 @@ const getAppAnimationCompletion = (delay): any => {
             },
             animCompletionAppLogo: {
                 elementId: "animCompletionAppLogo",
-                delayTimeInMillisecond: 2000 ,
+                delayTimeInMillisecond: 3000 ,
                 durationTimeInMillisecond: 3000,
                 elementStyle: getElementStyle({id: "animCompletionAppLogo"}),
                 element: getElementHtmlTag({
@@ -758,18 +758,18 @@ const getElementScript = (animatedPhoto: any, isPickTime = false) => {
 
 const getCustomElementScript = (elementId: any, elementDuration = 0) => {
     let duration = 0;
-    duration += 500; //in out duration
+    duration += 1000; //in out duration
     const additionalDuration = getAnimationDurationCss(elementDuration);
 
 
     //add preview animation
-    let script = `$("#${elementId}").animateCss("animated ${ANIMATION_IN_TYPES.bounceIn} duration1", `;
+    let script = `$("#${elementId}").animateCss("animated ${ANIMATION_IN_TYPES.bounceIn} durationDot5", `;
 
     script += `function(){ $("#${elementId}").animateCss("${ANIMATION_GIFS_TYPES.pulse} ${additionalDuration.className}", `;
 
     //add hide animation
     //add remove element
-    script += `function(){ $("#${elementId}").animateCss("${ANIMATION_OUT_TYPES.bounceOut} duration1", 
+    script += `function(){ $("#${elementId}").animateCss("${ANIMATION_OUT_TYPES.bounceOut} durationDot5", 
         ${getRemoveElementHandler({id: elementId})});`;
 
     //add additional animations closing tags
@@ -886,7 +886,7 @@ const getAnimationStyleTag = (customCss = null) => {
           visibility: visible;
         }
         .animation-img {
-            width: 107% !important; 
+            width: 109% !important; 
             position: absolute;
         }
         .durationDot2{
