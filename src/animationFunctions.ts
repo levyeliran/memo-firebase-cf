@@ -93,13 +93,25 @@ export const onEvenAnimationStatusCreated_createAnimation = functions.database
     .ref('pendingEventAnimation/{eventId}')
     .onUpdate(async (ea: any) => {
 
+        console.log(`************************************************************`);
+
         //extract relevant data and add log
         const fbData: FBData = extractData(ea);
         console.log(`An Pending Event Animation record was saved to database:`);
         console.log(fbData);
 
         if(!fbData.data.eventKey){
-            console.log(`Event id is missing, EXIT.`);
+            console.log(`Event key is missing, EXIT animation creation.`);
+            return null;
+        }
+
+        if(!fbData.data.photos){
+            console.log(`Event photos is missing, EXIT animation creation.`);
+            return null;
+        }
+
+        if(!fbData.data.event){
+            console.log(`Event object is missing, EXIT animation creation.`);
             return null;
         }
 
@@ -178,66 +190,96 @@ const createAnimation = (animationConfig: any) => {
     //
 
     const timeLinePhotos = getAnimationPhotosTimeline(animationConfig);
-    const keys = Object.keys(timeLinePhotos);
-    resultAnimation.photosAnimationContent = getPhotosAnimationContent(keys.map(k => timeLinePhotos[k]));
+    resultAnimation.photosAnimationContent = getPhotosAnimationContent(timeLinePhotos);
     //we need to calculate the delay time since the event photos animation is dynamic
     resultAnimation.appCompletion = getAppAnimationCompletion(
         resultAnimation.photosAnimationContent.totalTimeInMillisecond +
-        resultAnimation.photosAnimationContent.delayTimeInMillisecond)
+        resultAnimation.photosAnimationContent.delayTimeInMillisecond);
 
-    const delayDuration = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
-    return {
+    const delayDuration = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,60];
+    const result = {
         eventKey: animationConfig.eventKey,
         style: getAnimationStyleTag(delayDuration.map(sec => {
             return getAnimationDelayCss(sec).style + getAnimationDurationCss(sec).style;
-        })),
+        }).join(" ")),
         script: getAnimationScriptTag(resultAnimation),
-        generalHTML: '',//todo - add here all common gifs & emojies.
+        additionalHTML: '',//todo - add here all common gifs & emojies.
+        animationBodyHTML: null,
         animationData: resultAnimation
     };
+    result.animationBodyHTML = getAnimationBodyHTML(result);
+    return result;
 
+};
+
+const getAnimationBodyHTML = (configuration:any):any => {
+    return `
+        <!DOCTYPE html>
+         <html lang="en">
+            <head>
+              <link rel="stylesheet"
+                href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css"
+                integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw"
+                crossorigin="anonymous">
+              <script  src="https://code.jquery.com/jquery-3.3.1.min.js"
+                integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+                crossorigin="anonymous"></script>
+              <meta charset="UTF-8">
+              ${configuration.style}
+              ${configuration.script}
+            </head>
+            <body>
+            </body>
+         </html>`;
+
+    /*${getAnimationGifs().map(g => {
+                return getElementHtmlTag({
+                    id: g.name,
+                    url: g.src
+                }, g.styleClass);
+            }).join("\n\n\n")}*/
 };
 
 const getAppAnimationIntro = (): any => {
     //display intro of the app animation
     //7 seconds
     const animationConfig = {
-        totalTimeInMillisecond: 7000,
+        totalTimeInMillisecond: 7000 ,
         delayTimeInMillisecond: 0,
         animationContent: {
             animIntroAppLogo: {
                 elementId: "animIntroAppLogo",
                 delayTimeInMillisecond: 0,
-                durationTimeInMillisecond: 2000,
+                durationTimeInMillisecond: 2000 ,
                 elementStyle: getElementStyle({id: "animIntroAppLogo"}),
                 element: getElementHtmlTag({
                     id: "animIntroAppLogo",
                     url: getAnimationImgs().find(img => img.name === "appIcon").src
                 }),
-                animationScript: getCustomElementScript("animIntroAppLogo", 2000).script
+                animationScript: getCustomElementScript("animIntroAppLogo", 2).script
             },
             animIntroAppDesc: {
                 elementId: "animIntroAppDesc",
-                delayTimeInMillisecond: 2000,
-                durationTimeInMillisecond: 2000,
+                delayTimeInMillisecond: 2000 ,
+                durationTimeInMillisecond: 2000 ,
                 elementStyle: getElementStyle({id: "animIntroAppDesc"}),
                 element:
                     (`<div id="animIntroAppDesc" class="app-name-wrapper">
                         <div class="app-name">Memories</div>
                         <div class="app-description">For your special moments</div>
                     </div>`),
-                animationScript: getCustomElementScript("animIntroAppDesc", 2000).script
+                animationScript: getCustomElementScript("animIntroAppDesc", 2).script
             },
             animIntroCountdownGif: {
                 elementId: "animIntroCountdownGif",
-                delayTimeInMillisecond: 4000,
-                durationTimeInMillisecond: 3000,
+                delayTimeInMillisecond: 4000 ,
+                durationTimeInMillisecond: 3000 ,
                 elementStyle: getElementStyle({id: "animIntroCountdownGif"}),
                 element: getElementHtmlTag({
                     id: "animIntroCountdownGif",
                     url: getAnimationImgs().find(img => img.name === "countdown321").src
                 }),
-                animationScript: getCustomElementScript("animIntroCountdownGif", 3000).script
+                animationScript: getCustomElementScript("animIntroCountdownGif", 3).script
             }
         }
     };
@@ -258,46 +300,46 @@ const getEventAnimationIntro = (data: any): any => {
 
     //12 seconds
     const animationConfig = {
-        totalTimeInMillisecond: 12000,
-        delayTimeInMillisecond: 7000,
+        totalTimeInMillisecond: 12000 ,
+        delayTimeInMillisecond: 7000 ,
         animationContent: {
             eventIntroName: {
                 elementId: "eventIntroName",
                 delayTimeInMillisecond: 0,
-                durationTimeInMillisecond: 3000,
+                durationTimeInMillisecond: 3000 ,
                 elementStyle: getElementStyle({id: "eventIntroName"}),
                 element:
                     (`<div id="eventIntroName" class="event-name-wrapper">
                         <div class="event-name">${data.event.title}</div>
                     </div>`),
-                animationScript: getCustomElementScript("eventIntroName", 3000).script
+                animationScript: getCustomElementScript("eventIntroName", 3).script
             },
             eventIntroSaveTheDate: {
                 elementId: "eventIntroSaveTheDate",
-                delayTimeInMillisecond: 3000,
-                durationTimeInMillisecond: 2000,
+                delayTimeInMillisecond: 3000 ,
+                durationTimeInMillisecond: 2000 ,
                 elementStyle: getElementStyle({id: "eventIntroSaveTheDate"}),
                 element: getElementHtmlTag({
                     id: "eventIntroSaveTheDate",
                     url: getAnimationImgs().find(img => img.name === "saveTheDate").src
                 }),
-                animationScript: getCustomElementScript("eventIntroSaveTheDate", 2000).script
+                animationScript: getCustomElementScript("eventIntroSaveTheDate", 2).script
             },
             eventIntroEventDate: {
                 elementId: "eventIntroEventDate",
-                delayTimeInMillisecond: 5000,
-                durationTimeInMillisecond: 3000,
+                delayTimeInMillisecond: 5000 ,
+                durationTimeInMillisecond: 3000 ,
                 elementStyle: getElementStyle({id: "eventIntroEventDate"}),
                 element:
                     (`<div id="eventIntroEventDate" class="event-date-wrapper">
                         <div class="event-date">${(new Date(data.event.startDate)).toLocaleDateString()}</div>
                     </div>`),
-                animationScript: getCustomElementScript("eventIntroEventDate", 3000).script
+                animationScript: getCustomElementScript("eventIntroEventDate", 3).script
             },
             eventIntroEventType: {
                 elementId: "eventIntroEventType",
-                delayTimeInMillisecond: 8000,
-                durationTimeInMillisecond: 2000,
+                delayTimeInMillisecond: 8000 ,
+                durationTimeInMillisecond: 2000 ,
                 elementStyle: getElementStyle({id: "eventIntroEventType"}),
                 element:
                     (`<div id="eventIntroEventType" class="event-type-wrapper">
@@ -305,18 +347,18 @@ const getEventAnimationIntro = (data: any): any => {
                         <div class="r2">Event</div>
                         <div class="r3">Of the year!!!</div>
                     </div>`),
-                animationScript: getCustomElementScript("eventIntroEventType", 2000).script
+                animationScript: getCustomElementScript("eventIntroEventType", 2).script
             },
-            eventIntroLetsParty: {
-                elementId: "eventIntroLetsParty",
-                delayTimeInMillisecond: 10000,
-                durationTimeInMillisecond: 2000,
-                elementStyle: getElementStyle({id: "eventIntroLetsParty"}),
+            eventIntroLetsPartyGif: {
+                elementId: "eventIntroLetsPartyGif",
+                delayTimeInMillisecond: 10000 ,
+                durationTimeInMillisecond: 2000 ,
+                elementStyle: getElementStyle({id: "eventIntroLetsPartyGif"}),
                 element: getElementHtmlTag({
-                    id: "eventIntroLetsParty",
-                    url: getAnimationGifs().find(img => img.name === "teenagerDancer").src
+                    id: "eventIntroLetsPartyGif",
+                    url: getAnimationGifs().find(g => g.name === "teenagerDancer").src
                 }),
-                animationScript: getCustomElementScript("eventIntroLetsParty", 2000).script
+                animationScript: getCustomElementScript("eventIntroLetsPartyGif", 2).script
             }
         }
     };
@@ -332,11 +374,11 @@ const getEventAnimationIntro = (data: any): any => {
 };
 
 const getAnimationPhotosTimeline = (data: any) => {
-    const eventCurrentDurationInMinutes =
-        ((new Date()).getTime() - (new Date(data.event.startDate)).getTime()) / (1000 * 60);
+    //const eventCurrentDurationInMinutes =
+        //((new Date()).getTime() - (new Date(data.event.startDate)).getTime()) / (1000 * 60);
     const timeline = {};
     //create timeline of Minimum 5 minutes (we need at least 6 places in time line)
-    let skip = eventCurrentDurationInMinutes / 6 > 6 ? 5 : (eventCurrentDurationInMinutes / 6) + 1;
+    let skip = 6;//eventCurrentDurationInMinutes / 6 > 6 ? 5 : (eventCurrentDurationInMinutes / 6) + 1;
     console.log("Timeline skips value: ", skip);
 
     let time = new Date(data.event.startDate);
@@ -347,9 +389,12 @@ const getAnimationPhotosTimeline = (data: any) => {
         if (photo.creationDate > nextTime) {
             skip += 5;
             time = nextTime;
-            timeKey = time.toString();
+            timeKey = (time.toString()).replace(' ','');
         }
         const animatedPhoto = getPhotoConfiguration(index, photo, data.event);
+        if(!animatedPhoto){
+            return;
+        }
         /*{
             id:"",
             url:"",
@@ -378,8 +423,9 @@ const getAnimationPhotosTimeline = (data: any) => {
 };
 
 const getPhotoConfiguration = (photoId: any, photo: any, event: any) => {
-    const photoConfiguration: any = {};
+    let photoConfiguration: any = null;
     if (photo.tagsMetaData && photo.tagsMetaData.emojiTags && Array.isArray(photo.tagsMetaData.emojiTags)) {
+        photoConfiguration = {};
         photoConfiguration.id = `photo_${photoId}`;
         photoConfiguration.url = photo.fileURL;
         photoConfiguration.creatorName = photo.creatorName;
@@ -395,6 +441,12 @@ const getPhotoConfiguration = (photoId: any, photo: any, event: any) => {
             photoConfiguration.isDisplayUsersTags = photo.tagsMetaData.emojiTags.length >= (event.participatesDetails.length * 0.9);
         }
     }
+
+    if(photoConfiguration){
+        console.log(`photoConfiguration ${photoConfiguration.id} is:`);
+        console.log(JSON.stringify(photoConfiguration));
+    }
+
     return photoConfiguration;
 };
 
@@ -439,7 +491,7 @@ const getPhotosAnimationContent = (timelinePhotos: any): any => {
 
     const animationConfig = {
         totalTimeInMillisecond: 0,
-        delayTimeInMillisecond: 19000, //app intro + event intro time
+        delayTimeInMillisecond: 19000 , //app intro + event intro time
         animationContent: {}
     };
 
@@ -475,15 +527,22 @@ const getPhotosAnimationContent = (timelinePhotos: any): any => {
                             src: "",
                             categoryKey: num,
                             categoryName: ""
+                            styleClass: ""
                          }
                     vipUserNames:[""]
                 };
            isDisplayUsersTags:bool
        }*/
-
     const timelineKeys = Object.keys(timelinePhotos);
+
+    console.log('Timeline keys are:');
+    console.log(JSON.stringify(timelineKeys));
+
     timelineKeys.forEach(tlk => {
-        const stepConf = timelineKeys[tlk];
+        const stepConf = timelinePhotos[tlk];
+
+        console.log(`Timeline ${tlk} value is:`);
+        console.log(JSON.stringify(stepConf));
         let delay = 0;
         stepConf.photos.forEach(p => {
             const animScript = getElementScript(p, stepConf.isPickTime);
@@ -499,6 +558,9 @@ const getPhotosAnimationContent = (timelinePhotos: any): any => {
             delay += animScript.duration;
             //add the duration for total time
             animationConfig.totalTimeInMillisecond += animScript.duration;
+
+            console.log(`Animated photo ${p.id} conf is:`);
+            console.log(JSON.stringify(animationConfig.animationContent[p.id]));
         });
     });
 
@@ -539,7 +601,7 @@ const getAppAnimationCompletion = (delay): any => {
     //display completion of the app animation
     //7 seconds
     const animationConfig = {
-        totalTimeInMillisecond: 5000,
+        totalTimeInMillisecond: 5000 ,
         delayTimeInMillisecond: delay + 200,
         animationContent: {
             animCompletionDesc: {
@@ -552,18 +614,18 @@ const getAppAnimationCompletion = (delay): any => {
                         <div class="r1">Until next time</div>
                         <div class="r2">Keep smiling!</div>
                     </div>`),
-                animationScript: getCustomElementScript("animCompletionDesc", 2000).script
+                animationScript: getCustomElementScript("animCompletionDesc", 2).script
             },
             animCompletionAppLogo: {
                 elementId: "animCompletionAppLogo",
-                delayTimeInMillisecond: 2000,
+                delayTimeInMillisecond: 2000 ,
                 durationTimeInMillisecond: 3000,
                 elementStyle: getElementStyle({id: "animCompletionAppLogo"}),
                 element: getElementHtmlTag({
                     id: "animCompletionAppLogo",
                     url: getAnimationImgs().find(img => img.name === "appIcon").src
                 }),
-                animationScript: getCustomElementScript("animCompletionAppLogo", 2000).script
+                animationScript: getCustomElementScript("animCompletionAppLogo", 2).script
             }
         }
     };
@@ -577,11 +639,12 @@ const getAppAnimationCompletion = (delay): any => {
 
 const getRemoveElementHandler = (animatedPhoto: any) => {
     return `function(){$("#${animatedPhoto.id}").remove();}`;
-}
+};
 
 const getTagsAnimation = (tags: any) => {
-    return `    
-    var tagsData = ${tags};
+    return '';
+    /*`
+    var tagsData = JSON.parse(JSON.stringify(${JSON.stringify(tags)}));
     var inc = 0;
     var tagsInterval = setInterval(function(){
         if(inc < tagsData.length){
@@ -605,21 +668,21 @@ const getTagsAnimation = (tags: any) => {
         clearTimeout(tagsTimeout);
         clearInterval(tagsInterval);
     }, ${tags.length*1000 + 1000});
-    `;
+    `;*/
 };
 
 const getGifsAnimation = (gifs: any) => {
     return `    
-    var gifsData = ${gifs};
+    var gifsData = JSON.parse(JSON.stringify(${JSON.stringify(gifs)}));
     if(gifsData.length >= 1){
         //display the gif
         var gif1InTimeout = setTimeout(function(){ 
-            $("#gifsData[0].name").addClass("displayGif");
+            $("'#"+gifsData[0].name+"'").addClass("displayGif");
             clearTimeout(gif1InTimeout);
         }, 10);
         //hide the gif
         var gif1OutTimeout = setTimeout(function(){ 
-            $("#gifsData[0].name").removeClass("displayGif");
+            $("'#"+gifsData[0].name+"'").removeClass("displayGif");
             clearTimeout(gif1OutTimeout);
         }, 1500);
         
@@ -628,13 +691,13 @@ const getGifsAnimation = (gifs: any) => {
     if(gifsData.length >= 2){
         //display the gif
         var gif2InTimeout = setTimeout(function(){ 
-            $("#gifsData[1].name").addClass("displayGif");
+            $("'#"+gifsData[1].name+"'").addClass("displayGif");
             clearTimeout(gif2InTimeout);
         }, 1000);
         
         //hide the gif
         var gif2OutTimeout = setTimeout(function(){ 
-            $("#gifsData[1].name").removeClass("displayGif");
+            $("'#"+gifsData[1].name+"'").removeClass("displayGif");
             clearTimeout(gif2OutTimeout);
         }, 3300);
     }
@@ -643,7 +706,7 @@ const getGifsAnimation = (gifs: any) => {
 
 const getElementScript = (animatedPhoto: any, isPickTime = false) => {
     let duration = 0;
-    const inOutDuration = isPickTime ? 1: 2;
+    const inOutDuration = isPickTime ? 2: 4;
     const inOutDurationClass = getAnimationDurationCss(inOutDuration);
     let hasAdditionalAnimation = false;
 
@@ -654,7 +717,7 @@ const getElementScript = (animatedPhoto: any, isPickTime = false) => {
     duration += inOutDuration*1000;
 
     //add preview animation
-    let script = `$(#${animatedPhoto.id}).animateCss("animated ${inAnimation} ${inOutDurationClass.className}", `;
+    let script = `$("#${animatedPhoto.id}").animateCss("animated ${inAnimation} ${inOutDurationClass.className}", `;
 
     //add additional animations
     if(!isPickTime &&
@@ -668,14 +731,14 @@ const getElementScript = (animatedPhoto: any, isPickTime = false) => {
         script += `function(){ 
         ${getTagsAnimation(animatedPhoto.gifsAndTags.tags)}
         ${getGifsAnimation(animatedPhoto.gifsAndTags.availableGifs)}
-        $(#${animatedPhoto.id}).animateCss("${additionalAnimation} ${additionalDurationClass.className}", `;
+        $("#${animatedPhoto.id}").animateCss("${additionalAnimation} ${additionalDurationClass.className}", `;
 
         duration += (tagsCount > 3.5 ? tagsCount : 3.5) * 1000;
     }
 
     //add hide animation
     //add remove element
-    script += `function(){ $(#${animatedPhoto.id}).animateCss("${outAnimation} ${inOutDurationClass.className}", 
+    script += `function(){ $("#${animatedPhoto.id}").animateCss("${outAnimation} ${inOutDurationClass.className}", 
         ${getRemoveElementHandler(animatedPhoto)});`;
 
     //add additional animations closing tags
@@ -695,18 +758,18 @@ const getElementScript = (animatedPhoto: any, isPickTime = false) => {
 
 const getCustomElementScript = (elementId: any, elementDuration = 0) => {
     let duration = 0;
-    duration += 400; //in out duration
+    duration += 500; //in out duration
     const additionalDuration = getAnimationDurationCss(elementDuration);
 
 
     //add preview animation
-    let script = `$(#${elementId}).animateCss("animated ${ANIMATION_IN_TYPES.bounceIn} durationDot2", `;
+    let script = `$("#${elementId}").animateCss("animated ${ANIMATION_IN_TYPES.bounceIn} duration1", `;
 
-    script += `function(){ $(#${elementId}).animateCss("${ANIMATION_GIFS_TYPES.pulse} ${additionalDuration.className}", `;
+    script += `function(){ $("#${elementId}").animateCss("${ANIMATION_GIFS_TYPES.pulse} ${additionalDuration.className}", `;
 
     //add hide animation
     //add remove element
-    script += `function(){ $(#${elementId}).animateCss("${ANIMATION_OUT_TYPES.bounceOut} durationDot2", 
+    script += `function(){ $("#${elementId}").animateCss("${ANIMATION_OUT_TYPES.bounceOut} duration1", 
         ${getRemoveElementHandler({id: elementId})});`;
 
     //add additional animations closing tags
@@ -725,23 +788,34 @@ const getElementStyle = (animatedPhoto: any, isPickTime = false): string => {
     let style = `#${animatedPhoto.id}{
         width: 100%; 
         position: absolute;
-    }`;
+        ${animatedPhoto.customStyle || ''}
+    }
+    `;
     return style;
 };
 
-const getElementHtmlTag = (animatedPhoto: any) => {
+const getElementHtmlTag = (animatedPhoto: any, customClass = "animation-img") => {
     return `<img 
                 id="${animatedPhoto.id}" 
-                class="animation-img hidden" 
+                class="${customClass} hidden" 
                 src="${animatedPhoto.url}" />`;
 };
 
 const getAnimationStyleTag = (customCss = null) => {
     return `
     <style>
-         body {
+        body {
+          width: 100%; 
+          height: 100%; 
           padding: 0;
           margin: 0;
+          overflow-y: hidden;
+          overflow-x: hidden;
+          overflow: hidden;
+          font-family: 'Noto Sans', sans-serif;
+        }
+        .displayGif{
+            visibility: visible;
         }
         .mirorX{
             transform: scaleX(-1);
@@ -752,15 +826,71 @@ const getAnimationStyleTag = (customCss = null) => {
         .hidden{
           visibility: hidden;
         }
+        .party{
+            position:static;
+            width:60px;
+            height:60px;
+            left:15%;
+            top:20%;
+        }
+        .wow{
+            position:static;
+            width:50px;
+            height:50px;
+            left:85%;
+            top:20%;
+        }
+        .fun{
+            position:static;
+            width:80px;
+            height:80px;
+            left:15%;
+            top:20%;
+        }
+        .sweet{
+            position:static;
+            width:50px;
+            height:50px;
+            left:10%;
+            top:10%;
+        }
+        .love{
+            position:static;
+            width:50px;
+            height:50px;
+            left:25%;
+            top:75%;
+        }
+        .touching{
+            position:static;
+            width:65px;
+            height:65px;
+            right:15%;
+            top:80%;
+        }
+        .love{
+            position:static;
+            width:50px;
+            height:50px;
+            right:25%;
+            top:20%;
+        }
+        .shock{
+            position:static;
+            width:80px;
+            height:80px;
+            right:15%;
+            top:60%;
+        }
         .animated{
           visibility: visible;
         }
         .animation-img {
-            width: 100%; 
+            width: 107% !important; 
             position: absolute;
         }
         .durationDot2{
-            animation-duration: .2s;
+            animation-duration: .5s;
         }
         .durationDot5{
             animation-duration: .5s;
@@ -768,13 +898,17 @@ const getAnimationStyleTag = (customCss = null) => {
         .durationDot7{
             animation-duration: .7s;
         }
+        
         .app-name-wrapper {
             text-align: left;
-            position: relative;
+            color: white;
+            position: absolute;
             left: 25%;
-            top: -6%;
+            top: 20%;
         }
         .app-name-wrapper .app-name {
+          position: absolute;
+          top:30%
           color: white;
           font-size: 40px;
           text-shadow: 0px 0px 2px white;
@@ -786,7 +920,11 @@ const getAnimationStyleTag = (customCss = null) => {
           font-size: 11px;
           font-weight: 900;
           padding-bottom: 12px;
+          position:absolute;
+          top:45px;
+          left:2px;
         }
+        
         .event-name-wrapper{
             text-align: center;
             color: white;
@@ -797,232 +935,274 @@ const getAnimationStyleTag = (customCss = null) => {
         .event-name-wrapper .event-name{
         
         }
+        
         .event-date-wrapper{
+            position: absolute;
+            top: 35%;
             text-align: center;
             color: white;
-            font-size: 60px;
+            font-size: 50px;
             text-shadow: 0px 0px 2px white;
             font-weight: 900;
         }
+        
         .event-type-wrapper{
             text-align: center;
             color: white;
-            font-size: 40px;
+            font-size: 30px;
+            text-shadow: 0px 0px 2px white;
+            font-weight: 900;
+            position:absolute;
+            top:25%;
+        }
+        
+        .app-completion-desc-wrapper{
+            position: absolute;
+            top: 65%;
+            text-shadow: 0px 0px 25px black;
+            text-align: center;
+            color: white;
+            font-size: 30px;
             text-shadow: 0px 0px 2px white;
             font-weight: 900;
         }
-        .app-completion-desc-wrapper{
-            text-align: center;
-            color: white;
-            font-size: 40px;
-            text-shadow: 0px 0px 2px white;
-            font-weight: 900;
+        
+        #animIntroAppLogo{
+            position:absolute;
+            width:30%;
+            top:40%;
+            left:35%;
+        }
+        
+        #animIntroCountdownGif{
+            position:absolute;
+            width:100%;
+            height:100%;
+        }
+        
+        #eventIntroSaveTheDate{
+            position:absolute;
+            width:90%;
+            height:90%;
+            top:5%;
+        }
+        
+        #eventIntroLetsPartyGif{
+            position:absolute;
+            width:80%;
+            height:85%;
+            top:8%;
+        }
+        
+        #animCompletionAppLogo{
+            position:absolute;
+            width:60%;
+            height:60%;
+            left:20%;
+            top:8%;
         }
         ${customCss}
     </style>`
 };
 
 const getAnimationScriptTag = (animationConfigObj = null) => {
-    return `
-    <script type="application/javascript">
-    //add the data of the animation here
-    const animationConfig = ${animationConfigObj};
-    console.log(animationConfig);
-    //add extention to jQuery in order to support the animation
-    $.fn.extend({
-      animateCss: function (animationName, callback) {
-        var animationEnd = (function (el) {
-          var animations = {
-            animation: 'animationend',
-            OAnimation: 'oAnimationEnd',
-            MozAnimation: 'mozAnimationEnd',
-            WebkitAnimation: 'webkitAnimationEnd',
-          };
-          for (var t in animations) {
-            if (el.style[t] !== undefined) {
-              return animations[t];
-            }
-          }
-        })(document.createElement('div'));
-        this.addClass('animated ' + animationName).one(animationEnd, function () {
-          $(this).removeClass('animated ' + animationName);
+    return "<script> \n"+
+    "const animationConfig = JSON.parse(JSON.stringify(" + JSON.stringify(animationConfigObj) + "));\n" +
+    "console.log(animationConfig);\n"+
+    "var timeouts = {};\n"+
+    "$.fn.extend({\n"+
+    "  animateCss: function (animationName, callback) {\n"+
+   "    var animationEnd = (function (el) {\n"+
+   "      var animations = {\n"+
+   "        animation: 'animationend',\n"+
+   "        OAnimation: 'oAnimationEnd',\n"+
+   "        MozAnimation: 'mozAnimationEnd',\n"+
+   "        WebkitAnimation: 'webkitAnimationEnd',\n"+
+   "      };\n"+
+   "      for (var t in animations) {\n"+
+   "        if (el.style[t] !== undefined) {\n"+
+   "          return animations[t];\n"+
+   "        }\n"+
+   "      }\n"+
+   "    })(document.createElement('div'));\n"+
+   "    this.addClass('animated ' + animationName).one(animationEnd, function () {\n"+
+   "      $(this).removeClass('animated ' + animationName);\n"+
 
-          if (typeof callback === 'function') callback();
-        });
-        return this;
-      }
-    });
-    const str2DOMElement = function(html) {
-      var frame = document.createElement('iframe');
-      frame.style.display = 'none';
-      document.body.appendChild(frame);
-      frame.contentDocument.open();
-      frame.contentDocument.write(html);
-      frame.contentDocument.close();
-      var bodyEl = frame.contentDocument.body.firstChild;
-      document.body.removeChild(frame);
-      return bodyEl;
-    };
-    
-    //run the animation
-    $(document).ready(function () {
-        //loop over the photos and display the animation
-        if(!animationConfig){
-            //display error
-            console.error('animationConfig is missing');
-            return;
-        }
-        
-        if(animationConfig.appIntro){
-            const t1 = setTimeout(function(){
-                const appIntroKeys = Object.keys(animationConfig.appIntro.animationContent);    
-                appIntroKeys.forEach(function (key) {
-                var data = animationConfig.appIntro.animationContent[key];
-                console.log(data);
-        
-                //add the custom styling if exist
-                if(data.elementStyle){
-                    var style = document.createElement('style');
-                    style.type = 'text/css';
-                    style.appendChild(document.createTextNode(data.elementStyle));
-                    document.head.append(style);
-                }
-               
-                //add the element into the dom
-                document.body.append(str2DOMElement(data.element));
-        
-                //add the custom script if exist
-                if(data.animationScript){
-                    var t = setTimeout(function(){
-                      var script = document.createElement('script');
-                      script.type = 'text/javascript';
-                      script.text = data.animationScript;
-                      document.head.append(script);
-            
-                      //clear the delay timeout
-                      console.log(data.elementId + 'timeout was cleared(' + t + ')');
-                      clearTimeout(t);
-                    }, data.delayTimeInMillisecond - 200);
-                }
-                
-                //clear the delay timeout
-                clearTimeout(t1);
-            }, animationConfig.appIntro.delayTimeInMillisecond - 200);
-        }
-        
-        if(animationConfig.eventIntro){
-            const t2 = setTimeout(function(){
-                const eventIntroKeys = Object.keys(animationConfig.eventIntro.animationContent);    
-                eventIntroKeys.forEach(function (key) {
-                var data = animationConfig.eventIntro.animationContent[key];
-                console.log(data);
-        
-                //add the custom styling if exist
-                if(data.elementStyle){
-                    var style = document.createElement('style');
-                    style.type = 'text/css';
-                    style.appendChild(document.createTextNode(data.elementStyle));
-                    document.head.append(style);
-                }
-               
-                //add the element into the dom
-                document.body.append(str2DOMElement(data.element));
-        
-                //add the custom script if exist
-                if(data.animationScript){
-                    var t = setTimeout(function(){
-                      var script = document.createElement('script');
-                      script.type = 'text/javascript';
-                      script.text = data.animationScript;
-                      document.head.append(script);
-            
-                      //clear the delay timeout
-                      console.log(data.elementId + 'timeout was cleared(' + t + ')');
-                      clearTimeout(t);
-                    }, data.delayTimeInMillisecond - 200);
-                }
-                
-                //clear the delay timeout
-                clearTimeout(t2);
-            }, animationConfig.eventIntro.delayTimeInMillisecond - 200);
-        }
-        
-        if(animationConfig.photosAnimationContent){
-            const t3 = setTimeout(function(){
-                const photosAnimKeys = Object.keys(animationConfig.photosAnimationContent.animationContent);    
-                photosAnimKeys.forEach(function (key) {
-                var data = animationConfig.photosAnimationContent.animationContent[key];
-                console.log(data);
-        
-                //add the custom styling if exist
-                if(data.elementStyle){
-                    var style = document.createElement('style');
-                    style.type = 'text/css';
-                    style.appendChild(document.createTextNode(data.elementStyle));
-                    document.head.append(style);
-                }
-               
-                //add the element into the dom
-                document.body.append(str2DOMElement(data.element));
-        
-                //add the custom script if exist
-                if(data.animationScript){
-                    var t = setTimeout(function(){
-                      var script = document.createElement('script');
-                      script.type = 'text/javascript';
-                      script.text = data.animationScript;
-                      document.head.append(script);
-            
-                      //clear the delay timeout
-                      console.log(data.elementId + 'timeout was cleared(' + t + ')');
-                      clearTimeout(t);
-                    }, data.delayTimeInMillisecond - 200);
-                }
-                
-                //clear the delay timeout
-                clearTimeout(t3);
-            }, animationConfig.photosAnimationContent.delayTimeInMillisecond - 200);
-        }
-        
-        if(animationConfig.appCompletion){
-            const t4 = setTimeout(function(){
-                const appCompletionKeys = Object.keys(animationConfig.appCompletion.animationContent);    
-                appCompletionKeys.forEach(function (key) {
-                var data = animationConfig.appCompletion.animationContent[key];
-                console.log(data);
-        
-                //add the custom styling if exist
-                if(data.elementStyle){
-                    var style = document.createElement('style');
-                    style.type = 'text/css';
-                    style.appendChild(document.createTextNode(data.elementStyle));
-                    document.head.append(style);
-                }
-               
-                //add the element into the dom
-                document.body.append(str2DOMElement(data.element));
-        
-                //add the custom script if exist
-                if(data.animationScript){
-                    var t = setTimeout(function(){
-                      var script = document.createElement('script');
-                      script.type = 'text/javascript';
-                      script.text = data.animationScript;
-                      document.head.append(script);
-            
-                      //clear the delay timeout
-                      console.log(data.elementId + 'timeout was cleared(' + t + ')');
-                      clearTimeout(t);
-                    }, data.delayTimeInMillisecond - 200);
-                }
-                
-                //clear the delay timeout
-                clearTimeout(t4);
-            }, animationConfig.appCompletion.delayTimeInMillisecond - 200);    
-        }
-        
-    });
-  </script>`;
+   "      if (typeof callback === 'function') callback();\n"+
+   "    });\n"+
+   "    return this;\n"+
+   "  }\n"+
+   "});\n"+
+
+
+   "const str2DOMElement = function(html) {\n"+
+   "  var frame = document.createElement('iframe');\n"+
+   "  frame.style.display = 'none';\n"+
+   "  document.body.appendChild(frame);\n"+
+   "  frame.contentDocument.open();\n"+
+   "  frame.contentDocument.write(html);\n"+
+   "  frame.contentDocument.close();\n"+
+   "  var bodyEl = frame.contentDocument.body.firstChild;\n"+
+   "  document.body.removeChild(frame);\n"+
+   "  return bodyEl;\n"+
+   "};\n"+
+
+   "$(document).ready(function () {\n"+
+
+   "    if(!animationConfig){\n"+
+   "        console.error('animationConfig is missing');\n"+
+   "        return;\n"+
+   "    }\n"+
+
+   "    if(animationConfig.appIntro){\n"+
+   "        const t1 = setTimeout(function(){\n"+
+   "            const appIntroKeys = Object.keys(animationConfig.appIntro.animationContent);\n"+
+    "           console.log('appIntroKeys:');\n"+
+    "           console.log(appIntroKeys);\n"+
+   "            appIntroKeys.forEach(function (key) {\n"+
+   "                var data = animationConfig.appIntro.animationContent[key];\n"+
+"                   console.log('appIntroKey data:');\n"+
+"                   console.log(data);\n"+
+
+   "                if(data.elementStyle){\n"+
+   "                    var style = document.createElement('style');\n"+
+   "                    style.type = 'text/css';\n"+
+   "                    style.appendChild(document.createTextNode(data.elementStyle));\n"+
+"                       console.log('append appIntroKey style:');\n"+
+"                       console.log(style);\n"+
+   "                    document.head.append(style);\n"+
+   "                }\n"+
+
+"                   console.log('append appIntroKey element:');\n"+
+"                   console.log(data.element);\n"+
+   "                document.body.append(str2DOMElement(data.element));\n"+
+
+   "                if(data.animationScript){\n"+
+   "                    timeouts[data.elementId] = setTimeout(function(){\n"+
+   "                        var script = document.createElement('script');\n"+
+   "                        script.type = 'text/javascript';\n"+
+   "                        script.text = data.animationScript;\n"+
+
+"                           console.log('append appIntroKey script:');\n"+
+"                           console.log(data.animationScript);\n"+
+   "                        document.head.append(script);\n"+
+
+   "                        console.log(data.elementId + ' timeout was cleared(' + timeouts[data.elementId] + ')');\n"+
+   "                        clearTimeout(timeouts[data.elementId]);\n"+
+   "                    }, data.delayTimeInMillisecond - 200);\n"+
+   "                }\n"+
+   "            });\n"+
+
+   "            console.log('appIntro timeout was cleared(' + t1 + ')');\n"+
+   "            clearTimeout(t1);\n"+
+   "        }, animationConfig.appIntro.delayTimeInMillisecond - 200);\n"+
+   "    }\n"+
+
+   "    if(animationConfig.eventIntro){\n"+
+   "        const t2 = setTimeout(function(){\n"+
+   "            const eventIntroKeys = Object.keys(animationConfig.eventIntro.animationContent);\n"+
+   "            eventIntroKeys.forEach(function (key) {\n"+
+   "            var data = animationConfig.eventIntro.animationContent[key];\n"+
+   "            console.log(data);\n"+
+
+   "            if(data.elementStyle){\n"+
+   "                var style = document.createElement('style');\n"+
+   "                style.type = 'text/css';\n"+
+   "                style.appendChild(document.createTextNode(data.elementStyle));\n"+
+   "                document.head.append(style);\n"+
+   "            }\n"+
+
+   "            document.body.append(str2DOMElement(data.element));\n"+
+
+   "            if(data.animationScript){\n"+
+   "                timeouts[data.elementId] = setTimeout(function(){\n"+
+   "                  var script = document.createElement('script');\n"+
+   "                  script.type = 'text/javascript';\n"+
+   "                  script.text = data.animationScript;\n"+
+   "                  document.head.append(script);\n"+
+
+   "                  console.log(data.elementId + 'timeout was cleared(' + timeouts[data.elementId] + ')');\n"+
+   "                  clearTimeout(timeouts[data.elementId]);\n"+
+   "                }, data.delayTimeInMillisecond - 200);\n"+
+   "            }\n"+
+        "            });\n"+
+
+        "            console.log('eventIntro timeout was cleared(' + t2 + ')');\n"+
+        "            clearTimeout(t2);\n"+
+   "        }, animationConfig.eventIntro.delayTimeInMillisecond - 200);\n"+
+   "    }\n"+
+
+   "    if(animationConfig.photosAnimationContent){\n"+
+   "        const t3 = setTimeout(function(){\n"+
+   "            const photosAnimKeys = Object.keys(animationConfig.photosAnimationContent.animationContent);\n"+
+   "            photosAnimKeys.forEach(function (key) {\n"+
+   "            var data = animationConfig.photosAnimationContent.animationContent[key];\n"+
+   "            console.log(data);\n"+
+
+   "            if(data.elementStyle){\n"+
+   "                var style = document.createElement('style');\n"+
+   "                style.type = 'text/css';\n"+
+   "                style.appendChild(document.createTextNode(data.elementStyle));\n"+
+   "                document.head.append(style);\n"+
+   "            }\n"+
+
+   "            document.body.append(str2DOMElement(data.element));\n"+
+
+   "            if(data.animationScript){\n"+
+   "                timeouts[data.elementId] = setTimeout(function(){\n"+
+   "                  var script = document.createElement('script');\n"+
+   "                  script.type = 'text/javascript';\n"+
+   "                  script.text = data.animationScript;\n"+
+   "                  document.head.append(script);\n"+
+
+   "                  console.log(data.elementId + 'timeout was cleared(' + timeouts[data.elementId] + ')');\n"+
+   "                  clearTimeout(timeouts[data.elementId]);\n"+
+   "                }, data.delayTimeInMillisecond - 200);\n"+
+   "            }\n"+
+        "            });\n"+
+
+        "            console.log('photosAnimationContent timeout was cleared(' + t3 + ')');\n"+
+        "            clearTimeout(t3);\n"+
+   "        }, animationConfig.photosAnimationContent.delayTimeInMillisecond - 200);\n"+
+   "    }\n"+
+
+   "    if(animationConfig.appCompletion){\n"+
+   "        const t4 = setTimeout(function(){\n"+
+   "            const appCompletionKeys = Object.keys(animationConfig.appCompletion.animationContent);\n"+
+   "            appCompletionKeys.forEach(function (key) {\n"+
+   "            var data = animationConfig.appCompletion.animationContent[key];\n"+
+   "            console.log(data);\n"+
+
+   "            if(data.elementStyle){\n"+
+   "                var style = document.createElement('style');\n"+
+   "                style.type = 'text/css';\n"+
+   "                style.appendChild(document.createTextNode(data.elementStyle));\n"+
+   "                document.head.append(style);\n"+
+   "            }\n"+
+
+   "            document.body.append(str2DOMElement(data.element));\n"+
+
+   "            if(data.animationScript){\n"+
+   "                timeouts[data.elementId] = setTimeout(function(){\n"+
+   "                  var script = document.createElement('script');\n"+
+   "                  script.type = 'text/javascript';\n"+
+   "                  script.text = data.animationScript;\n"+
+   "                  document.head.append(script);\n"+
+
+   "                  console.log(data.elementId + 'timeout was cleared(' + timeouts[data.elementId] + ')');\n"+
+   "                  clearTimeout(timeouts[data.elementId]);\n"+
+   "                }, data.delayTimeInMillisecond - 200);\n"+
+   "            }\n"+
+
+        "            });\n"+
+
+        "            console.log('appCompletion timeout was cleared(' + t4 + ')');\n"+
+        "            clearTimeout(t4);\n"+
+   "        }, animationConfig.appCompletion.delayTimeInMillisecond - 200);\n"+
+   "    }\n"+
+
+   "});\n" +
+   "</script>";
 };
 
 const getAnimationGifs = (): any => {
@@ -1030,177 +1210,212 @@ const getAnimationGifs = (): any => {
         name: "countdownSticker",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FcountdownSticker.gif?alt=media&token=5d3ac171-2d59-413b-8916-6e2d2302bab7",
         categoryKey: -1,
-        categoryName: "general"
+        categoryName: "general",
+        styleClass: "gif general"
     }, {
         name: "spongeBobLove",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FbobSpongeLove.gif?alt=media&token=ad06a055-2ae4-45f4-94ea-24b6204b6fab",
         categoryKey: 6,
-        categoryName: "touching"
+        categoryName: "touching",
+        styleClass: "gif touching"
     }, {
         name: "confety",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2Fconfety.gif?alt=media&token=bffbf169-06a4-48d0-b26d-3c9f1f8a4086",
         categoryKey: 3,
-        categoryName: "fun"
+        categoryName: "fun",
+        styleClass: "gif fun"
     }, {
         name: "coolBeerCup",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FcoolBeerCup.gif?alt=media&token=944f2120-8cde-4107-8a4a-7344b4d9e6b6",
         categoryKey: 3,
-        categoryName: "fun"
+        categoryName: "fun",
+        styleClass: "gif fun"
     }, {
         name: "dancingBanana",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FdancingBanana.gif?alt=media&token=d3b08e82-d93e-43b7-a33c-8a875a44ce25",
         categoryKey: 7,
-        categoryName: "wow"
+        categoryName: "wow",
+        styleClass: "gif wow"
     }, {
         name: "dancingGrandpa",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FdancingGrandpa.gif?alt=media&token=4459c590-72ee-4fd1-ac5a-a6e218911ca1",
         categoryKey: 4,
-        categoryName: "party"
+        categoryName: "party",
+        styleClass: "gif party"
     }, {
         name: "filledUpTwoBeerCups",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FfilledUpTwoBeerCups.gif?alt=media&token=1b49ea4f-245f-4121-8fbb-dda79ab5f2ca",
         categoryKey: 3,
-        categoryName: "fun"
+        categoryName: "fun",
+        styleClass: "gif fun"
     }, {
         name: "fireworks1",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2Ffireworks1.gif?alt=media&token=c2de3a64-72cf-4f9d-a597-2d5f9badfa8b",
         categoryKey: 4,
-        categoryName: "party"
+        categoryName: "party",
+        styleClass: "gif party"
     }, {
         name: "fireworks2",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2Ffireworks2.gif?alt=media&token=d853de70-df0d-4ed7-a09a-86204b287563",
         categoryKey: 4,
-        categoryName: "party"
+        categoryName: "party",
+        styleClass: "gif party"
     }, {
         name: "fireworks3",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2Ffireworks2.gif?alt=media&token=d853de70-df0d-4ed7-a09a-86204b287563",
         categoryKey: 4,
-        categoryName: "party"
+        categoryName: "party",
+        styleClass: "gif party"
     }, {
         name: "fireworks4",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2Ffireworks2.gif?alt=media&token=d853de70-df0d-4ed7-a09a-86204b287563",
         categoryKey: 6,
-        categoryName: "touching"
+        categoryName: "touching",
+        styleClass: "gif touching"
     }, {
         name: "floatingDancer",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FfloatingDancer.gif?alt=media&token=c63c04fd-6e79-4d35-b98a-53ebe900f10c",
         categoryKey: 7,
-        categoryName: "wow"
+        categoryName: "wow",
+        styleClass: "gif wow"
     }, {
         name: "greenWinkMan",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FgreenWinkMan.gif?alt=media&token=c061f116-30e3-43e1-9afa-6d5a968cf5c8",
         categoryKey: 2,
-        categoryName: "sweet"
+        categoryName: "sweet",
+        styleClass: "gif sweet"
     }, {
         name: "happyColoredDancer",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FhappyColoredDancer.gif?alt=media&token=d8865e49-068b-4571-ae9a-f3992b7e74ea",
         categoryKey: 3,
-        categoryName: "fun"
+        categoryName: "fun",
+        styleClass: "gif fun"
     }, {
         name: "happyFuckYahh",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FhappyFuckYahh.gif?alt=media&token=10e77994-ea5e-4674-a29e-02816c77d07e",
         categoryKey: 8,
-        categoryName: "shock"
+        categoryName: "shock",
+        styleClass: "gif shock"
     }, {
         name: "happyHampster",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FhappyHampster.gif?alt=media&token=e7bccf64-2840-4fd1-b27f-6cd732f3ea22",
         categoryKey: 2,
-        categoryName: "sweet"
+        categoryName: "sweet",
+        styleClass: "gif sweet"
     }, {
         name: "hotdogWithPartyBall",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FhotdogWithPartyBall.gif?alt=media&token=b5ac7ac1-8821-42e1-96f6-815124456229",
         categoryKey: 4,
-        categoryName: "party"
+        categoryName: "party",
+        styleClass: "gif party"
     }, {
         name: "increasedWhiteSquare",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FincreasedWhiteSquare.gif?alt=media&token=a4982350-d6c0-437a-ab93-af5ee8f4e6bb",
         categoryKey: 2,
-        categoryName: "sweet"
+        categoryName: "sweet",
+        styleClass: "gif sweet"
     }, {
         name: "loveHeartSticker",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FloveHeartSticker.gif?alt=media&token=d7c45e73-ae7b-4b5d-8bf0-2585cad214ff",
         categoryKey: 1,
-        categoryName: "love"
+        categoryName: "love",
+        styleClass: "gif love"
     }, {
         name: "loveRedSticker",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FloveRedSticker.gif?alt=media&token=04167592-735f-4b26-a779-c1248fda6df6",
         categoryKey: 6,
-        categoryName: "touching"
+        categoryName: "touching",
+        styleClass: "gif touching"
     }, {
         name: "muffine",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2Fmuffine.gif?alt=media&token=b7acb8e0-be6c-4fdb-9cd6-c204bdd15f75",
         categoryKey: 2,
-        categoryName: "sweet"
+        categoryName: "sweet",
+        styleClass: "gif sweet"
     }, {
         name: "partySticker",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FpartySticker.gif?alt=media&token=af7fed00-2b3c-40a0-a5c4-225775693b03",
         categoryKey: 4,
-        categoryName: "party"
+        categoryName: "party",
+        styleClass: "gif party"
     }, {
         name: "pinkArrow",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FpinkArrow.gif?alt=media&token=6d1b77b7-a2c5-4348-879d-5e556d1b32ff",
         categoryKey: 2,
-        categoryName: "sweet"
+        categoryName: "sweet",
+        styleClass: "gif sweet"
     }, {
         name: "pinkGift",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FpinkGift.gif?alt=media&token=c6c3026c-3a0a-4eaa-bcc2-73e295eacbfd",
         categoryKey: 2,
-        categoryName: "sweet"
+        categoryName: "sweet",
+        styleClass: "gif sweet"
     }, {
         name: "pinkStar",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FpinkStar.gif?alt=media&token=f4d08941-fef4-489d-aac0-06accd6a63bf",
         categoryKey: 2,
-        categoryName: "sweet"
+        categoryName: "sweet",
+        styleClass: "gif sweet"
     }, {
         name: "pinkWineBottle",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FpinkWineBottle.gif?alt=media&token=0a44895b-c6d9-4852-9e26-e2a6b5266d49",
         categoryKey: 3,
-        categoryName: "fun"
+        categoryName: "fun",
+        styleClass: "gif fun"
     }, {
         name: "powSticker",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FpowSticker.gif?alt=media&token=f960f21f-e5d4-4d88-b427-2f9389a31f10",
         categoryKey: 4,
-        categoryName: "party"
+        categoryName: "party",
+        styleClass: "gif party"
     }, {
         name: "purpleHearts",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FpurpleHearts.gif?alt=media&token=f5b80ebf-1690-49d0-be55-8ac67dd93360",
         categoryKey: 1,
-        categoryName: "love"
+        categoryName: "love",
+        styleClass: "gif love"
     }, {
         name: "rainbowCake",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FrainbowCake.gif?alt=media&token=388f3bd2-771a-4e31-b0fa-9a96d2c392bd",
         categoryKey: 2,
-        categoryName: "sweet"
+        categoryName: "sweet",
+        styleClass: "gif sweet"
     }, {
         name: "teenagerDancer",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FteenagerDancer.gif?alt=media&token=a3d6e569-0045-4e1b-a443-c639b69a5159",
         categoryKey: 4,
-        categoryName: "party"
+        categoryName: "party",
+        styleClass: "gif party"
     }, {
         name: "twinkledArrow",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FtwinkledArrow.gif?alt=media&token=1b99e383-6e25-4bd7-9f7d-e8dead6bafcb",
         categoryKey: 3,
-        categoryName: "fun"
+        categoryName: "fun",
+        styleClass: "gif fun"
     }, {
         name: "twinkledStar",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FtwinkledStar.gif?alt=media&token=a9a9818f-e129-4979-9947-1ac529796bd1",
         categoryKey: 4,
-        categoryName: "party"
+        categoryName: "party",
+        styleClass: "gif party"
     }, {
         name: "twistedPinkCandy",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FtwistedPinkCandy.gif?alt=media&token=11de775d-3e67-42ff-aeed-ae7b202b11af",
         categoryKey: 3,
-        categoryName: "fun"
+        categoryName: "fun",
+        styleClass: "gif fun"
     }, {
         name: "yasssSticker",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FyasssSticker.gif?alt=media&token=9d8c7341-2f14-45d8-85b0-9787241c516e",
         categoryKey: 7,
-        categoryName: "wow"
+        categoryName: "wow",
+        styleClass: "gif wow"
     }, {
         name: "yellowLight",
         src: "https://firebasestorage.googleapis.com/v0/b/memo-11ade.appspot.com/o/gifs%2FyellowLight.gif?alt=media&token=9ef7cfb4-4a04-4f63-a21e-b0248522ebfe",
         categoryKey: 4,
-        categoryName: "party"
+        categoryName: "party",
+        styleClass: "gif party"
     }];
     return gifs;
 };

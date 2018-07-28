@@ -39,35 +39,33 @@ exports.animation = functions.https.onRequest((req, res) => {
         .ref(`eventAnimation/${req.query.eventKey}`)
         .once('value')
         .then(eventAnimation => {
-            let animation: any = {};
-            if (eventAnimation) {
+            const animation = eventAnimation.val()
+            if (animation) {
+
+                console.log(`event animation keys:`);
+                console.log(JSON.stringify(Object.keys(animation)));
+
                 console.log(`event animation:`);
-                console.log(JSON.stringify(eventAnimation));
+                console.log(JSON.stringify(animation));
+
+                console.log(`event animation - style:`);
+                console.log(JSON.stringify(animation.style));
+
+                console.log(`event animation - script:`);
+                console.log(JSON.stringify(animation.script));
+
+                console.log(`event animation - generalHTML:`);
+                console.log(JSON.stringify(animation.generalHTML));
+
+                console.log(`Return 200 OK, response body(animationBodyHTML):`);
+                console.log(JSON.stringify(animation.animationBodyHTML));
 
                 //send the result to the app iFrame - therefore we need to create a valid html document
-                res.status(200).send(
-                    `<!DOCTYPE html>
-                     <html lang="en">
-                        <head>
-                          <link rel="stylesheet"
-                            href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css"
-                            integrity="sha384-OHBBOqpYHNsIqQy8hL1U+8OXf9hH6QRxi0+EODezv82DfnZoV7qoHAZDwMwEJvSw"
-                            crossorigin="anonymous">
-                          <script  src="https://code.jquery.com/jquery-3.3.1.min.js"
-                            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-                            crossorigin="anonymous"></script>
-                          <meta charset="UTF-8">
-                          ${eventAnimation.style}
-                          ${eventAnimation.script}
-                        </head>
-                        <body>
-                        ${eventAnimation.generalHTML}
-                        </body>
-                     </html>`);
-
+                res.status(200).send(animation.animationBodyHTML);
             }
             else {
                 //handle here
+                console.log(`Return 200 ERROR`);
                 res.status(200).send('');
             }
         });
