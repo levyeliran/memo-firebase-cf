@@ -155,12 +155,16 @@ export const onEvenUpdated_setUserToEventStatus = functions.database
 
 
 function fixPhoneNumber(phone:string =''){
-    return fixPhoneNumber(phone)
-        .replace('+','')
-        .replace('(','')
-        .replace(')', '')
-        .replace('-', '')
-        .replace(' ', '')
+    return phone
+        .replace('+972', '0')
+        .replace('(972)', '0')
+        .split('(').join('')
+        .split(')').join('')
+        .split('-').join('')
+        .split(' ').join('')
+        .split('+').join('')
+        .split('_').join('')
+        .split('.').join('')
 }
 
 /*
