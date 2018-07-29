@@ -244,18 +244,20 @@ const getAppAnimationIntro = (): any => {
     //display intro of the app animation
     //7 seconds
     const animationConfig = {
-        totalTimeInMillisecond: 10000 ,
-        delayTimeInMillisecond: 0,
+        totalTimeInMillisecond: 9000 ,
+        delayTimeInMillisecond: 200,
         animationContent: {
             animIntroAppLogo: {
                 elementId: "animIntroAppLogo",
-                delayTimeInMillisecond: 0,
+                delayTimeInMillisecond: 200,
                 durationTimeInMillisecond: 3000 ,
                 elementStyle: getElementStyle({id: "animIntroAppLogo"}),
-                element: getElementHtmlTag({
-                    id: "animIntroAppLogo",
-                    url: getAnimationImgs().find(img => img.name === "appIcon").src
-                }),
+                element: `<div class="app-logo-wrapper">
+                            ${getElementHtmlTag({
+                                id: "animIntroAppLogo",
+                                url: getAnimationImgs().find(img => img.name === "appIcon").src
+                            }, "app-logo-img")}
+                          </div>`,
                 animationScript: getCustomElementScript("animIntroAppLogo", 2).script
             },
             animIntroAppDesc: {
@@ -264,7 +266,7 @@ const getAppAnimationIntro = (): any => {
                 durationTimeInMillisecond: 3000 ,
                 elementStyle: getElementStyle({id: "animIntroAppDesc"}),
                 element:
-                    (`<div id="animIntroAppDesc" class="app-name-wrapper">
+                    (`<div id="animIntroAppDesc" class="app-name-wrapper hidden">
                         <div class="app-name">Memories</div>
                         <div class="app-description">For your special moments</div>
                     </div>`),
@@ -273,13 +275,13 @@ const getAppAnimationIntro = (): any => {
             animIntroCountdownGif: {
                 elementId: "animIntroCountdownGif",
                 delayTimeInMillisecond: 6000 ,
-                durationTimeInMillisecond: 4000 ,
+                durationTimeInMillisecond: 2000 ,
                 elementStyle: getElementStyle({id: "animIntroCountdownGif"}),
                 element: getElementHtmlTag({
                     id: "animIntroCountdownGif",
                     url: getAnimationImgs().find(img => img.name === "countdown321").src
                 }),
-                animationScript: getCustomElementScript("animIntroCountdownGif", 3).script
+                animationScript: getCustomElementScript("animIntroCountdownGif", 1).script
             }
         }
     };
@@ -301,57 +303,57 @@ const getEventAnimationIntro = (data: any): any => {
     //12 seconds
     const animationConfig = {
         totalTimeInMillisecond: 17000 ,
-        delayTimeInMillisecond: 10000 ,
+        delayTimeInMillisecond: 9000 ,
         animationContent: {
             eventIntroName: {
                 elementId: "eventIntroName",
-                delayTimeInMillisecond: 0,
-                durationTimeInMillisecond: 4000 ,
+                delayTimeInMillisecond: 200,
+                durationTimeInMillisecond: 3000 ,
                 elementStyle: getElementStyle({id: "eventIntroName"}),
                 element:
-                    (`<div id="eventIntroName" class="event-name-wrapper">
-                        <div class="event-name">${data.event.title}</div>
+                    (`<div id="eventIntroName" class="event-name-wrapper hidden">
+                        <div class="event-name">${data.event.title || 'This Event'}</div>
                     </div>`),
-                animationScript: getCustomElementScript("eventIntroName", 3).script
+                animationScript: getCustomElementScript("eventIntroName", 2).script
             },
             eventIntroSaveTheDate: {
                 elementId: "eventIntroSaveTheDate",
-                delayTimeInMillisecond: 4000 ,
+                delayTimeInMillisecond: 4500 ,
                 durationTimeInMillisecond: 3000 ,
                 elementStyle: getElementStyle({id: "eventIntroSaveTheDate"}),
                 element: getElementHtmlTag({
                     id: "eventIntroSaveTheDate",
                     url: getAnimationImgs().find(img => img.name === "saveTheDate").src
-                }),
+                }, "save-the-date-img"),
                 animationScript: getCustomElementScript("eventIntroSaveTheDate", 2).script
             },
             eventIntroEventDate: {
                 elementId: "eventIntroEventDate",
-                delayTimeInMillisecond: 7000 ,
+                delayTimeInMillisecond: 7500 ,
                 durationTimeInMillisecond: 4000 ,
                 elementStyle: getElementStyle({id: "eventIntroEventDate"}),
                 element:
-                    (`<div id="eventIntroEventDate" class="event-date-wrapper">
+                    (`<div id="eventIntroEventDate" class="event-date-wrapper hidden">
                         <div class="event-date">${(new Date(data.event.startDate)).toLocaleDateString()}</div>
                     </div>`),
                 animationScript: getCustomElementScript("eventIntroEventDate", 3).script
             },
             eventIntroEventType: {
                 elementId: "eventIntroEventType",
-                delayTimeInMillisecond: 11000 ,
-                durationTimeInMillisecond: 3000 ,
+                delayTimeInMillisecond: 11500 ,
+                durationTimeInMillisecond: 2000 ,
                 elementStyle: getElementStyle({id: "eventIntroEventType"}),
                 element:
-                    (`<div id="eventIntroEventType" class="event-type-wrapper">
+                    (`<div id="eventIntroEventType" class="event-type-wrapper hidden">
                         <div class="r1">The best</div>
                         <div class="r2">Event</div>
                         <div class="r3">Of the year!!!</div>
                     </div>`),
-                animationScript: getCustomElementScript("eventIntroEventType", 2).script
+                animationScript: getCustomElementScript("eventIntroEventType", 1).script
             },
             eventIntroLetsPartyGif: {
                 elementId: "eventIntroLetsPartyGif",
-                delayTimeInMillisecond: 14000 ,
+                delayTimeInMillisecond: 14500 ,
                 durationTimeInMillisecond: 3000 ,
                 elementStyle: getElementStyle({id: "eventIntroLetsPartyGif"}),
                 element: getElementHtmlTag({
@@ -491,7 +493,7 @@ const getPhotosAnimationContent = (timelinePhotos: any): any => {
 
     const animationConfig = {
         totalTimeInMillisecond: 0,
-        delayTimeInMillisecond: 27000 , //app intro + event intro time
+        delayTimeInMillisecond: 26000 , //app intro + event intro time
         animationContent: {}
     };
 
@@ -537,13 +539,14 @@ const getPhotosAnimationContent = (timelinePhotos: any): any => {
 
     console.log('Timeline keys are:');
     console.log(JSON.stringify(timelineKeys));
-
+    let delay = 200;
+    let totalPhotos = 0;
     timelineKeys.forEach(tlk => {
         const stepConf = timelinePhotos[tlk];
 
         console.log(`Timeline ${tlk} value is:`);
         console.log(JSON.stringify(stepConf));
-        let delay = 0;
+
         stepConf.photos.forEach(p => {
             const animScript = getElementScript(p, stepConf.isPickTime);
             animationConfig.animationContent[p.id] = {
@@ -554,15 +557,19 @@ const getPhotosAnimationContent = (timelinePhotos: any): any => {
                 element: getElementHtmlTag(p),
                 animationScript: animScript.script
             };
-            //calculate the delay for the next photo display
+            //calculate the delay for the next photo display - incrmental value (will be the total time of the photos animation)
             delay += animScript.duration;
-            //add the duration for total time
-            animationConfig.totalTimeInMillisecond += animScript.duration;
-
+            totalPhotos++;
             console.log(`Animated photo ${p.id} conf is:`);
             console.log(JSON.stringify(animationConfig.animationContent[p.id]));
         });
+
     });
+
+    console.log(`Total animation time for ${totalPhotos} photos`);
+    console.log(`${delay}ms`);
+    //add the duration for total time
+    animationConfig.totalTimeInMillisecond += delay;
 
     /*    const animationConfig = {
       totalTimeInMillisecond: 13000,
@@ -606,25 +613,27 @@ const getAppAnimationCompletion = (delay): any => {
         animationContent: {
             animCompletionDesc: {
                 elementId: "animCompletionDesc",
-                delayTimeInMillisecond: 0,
+                delayTimeInMillisecond: 200,
                 durationTimeInMillisecond: 3000,
                 elementStyle: getElementStyle({id: "animCompletionDesc"}),
                 element:
-                    (`<div id="animCompletionDesc" class="app-completion-desc-wrapper">
+                    (`<div id="animCompletionDesc" class="app-completion-desc-wrapper hidden">
                         <div class="r1">Until next time</div>
                         <div class="r2">Keep smiling!</div>
                     </div>`),
-                animationScript: getCustomElementScript("animCompletionDesc", 2).script
+                animationScript: getCustomElementScript("animCompletionDesc", 2, true).script
             },
             animCompletionAppLogo: {
                 elementId: "animCompletionAppLogo",
                 delayTimeInMillisecond: 3000 ,
                 durationTimeInMillisecond: 3000,
                 elementStyle: getElementStyle({id: "animCompletionAppLogo"}),
-                element: getElementHtmlTag({
-                    id: "animCompletionAppLogo",
-                    url: getAnimationImgs().find(img => img.name === "appIcon").src
-                }),
+                element:`<div class="app-logo-wrapper">
+                            ${getElementHtmlTag({
+                                id: "animCompletionAppLogo",
+                                url: getAnimationImgs().find(img => img.name === "appIcon").src
+                            }, "app-logo-img-completion")}
+                        </div>`,
                 animationScript: getCustomElementScript("animCompletionAppLogo", 2).script
             }
         }
@@ -637,8 +646,18 @@ const getAppAnimationCompletion = (delay): any => {
     return animationConfig;
 };
 
-const getRemoveElementHandler = (animatedPhoto: any) => {
-    return `function(){$("#${animatedPhoto.id}").remove();}`;
+const getRemoveElementHandler = (animatedPhoto: any, removeAllImages = false) => {
+
+    if(removeAllImages){
+        return `function(){
+                $("#${animatedPhoto.id}").remove();
+                $(".animation-img").remove();
+            }`;
+    }
+
+    return `function(){
+                $("#${animatedPhoto.id}").remove();
+            }`;
 };
 
 const getTagsAnimation = (tags: any) => {
@@ -708,7 +727,6 @@ const getElementScript = (animatedPhoto: any, isPickTime = false) => {
     let duration = 0;
     const inOutDuration = isPickTime ? 2: 4;
     const inOutDurationClass = getAnimationDurationCss(inOutDuration);
-    let hasAdditionalAnimation = false;
 
     const inAnimation = getInAnimationType();
     duration += inOutDuration*1000;
@@ -719,21 +737,27 @@ const getElementScript = (animatedPhoto: any, isPickTime = false) => {
     //add preview animation
     let script = `$("#${animatedPhoto.id}").animateCss("animated ${inAnimation} ${inOutDurationClass.className}", `;
 
+    let additionalDurationClass = getAnimationDurationCss(2);
+    const additionalAnimation = getGeneralAnimationType();
+
     //add additional animations
     if(!isPickTime &&
         (animatedPhoto.gifsAndTags.tags.length ||
             animatedPhoto.gifsAndTags.availableGifs.length ||
             animatedPhoto.gifsAndTags.vipUserNames.length)){
         const tagsCount = animatedPhoto.gifsAndTags.tags.length + 1;
-        hasAdditionalAnimation = true;
-        const additionalDurationClass = getAnimationDurationCss(tagsCount);
-        const additionalAnimation = getGeneralAnimationType();
+        additionalDurationClass = getAnimationDurationCss(tagsCount);
         script += `function(){ 
         ${getTagsAnimation(animatedPhoto.gifsAndTags.tags)}
         ${getGifsAnimation(animatedPhoto.gifsAndTags.availableGifs)}
         $("#${animatedPhoto.id}").animateCss("${additionalAnimation} ${additionalDurationClass.className}", `;
 
-        duration += (tagsCount > 3.5 ? tagsCount : 3.5) * 1000;
+        duration += tagsCount * 1000;
+    }
+    else {
+        script += `function(){
+        $("#${animatedPhoto.id}").animateCss("${additionalAnimation} ${additionalDurationClass.className}", `;
+        duration += 2000;
     }
 
     //add hide animation
@@ -742,10 +766,7 @@ const getElementScript = (animatedPhoto: any, isPickTime = false) => {
         ${getRemoveElementHandler(animatedPhoto)});`;
 
     //add additional animations closing tags
-    if(hasAdditionalAnimation){
-        //add additional animation closing tag
-        script += '});';
-    }
+    script += '});';
 
     //add animation closing tag
     script += '});';
@@ -756,7 +777,7 @@ const getElementScript = (animatedPhoto: any, isPickTime = false) => {
     };
 };
 
-const getCustomElementScript = (elementId: any, elementDuration = 0) => {
+const getCustomElementScript = (elementId: any, elementDuration = 0, removeAllImages = false) => {
     let duration = 0;
     duration += 1000; //in out duration
     const additionalDuration = getAnimationDurationCss(elementDuration);
@@ -770,7 +791,7 @@ const getCustomElementScript = (elementId: any, elementDuration = 0) => {
     //add hide animation
     //add remove element
     script += `function(){ $("#${elementId}").animateCss("${ANIMATION_OUT_TYPES.bounceOut} durationDot5", 
-        ${getRemoveElementHandler({id: elementId})});`;
+        ${getRemoveElementHandler({id: elementId}, removeAllImages)});`;
 
     //add additional animations closing tags
     script += '});';
@@ -805,6 +826,7 @@ const getAnimationStyleTag = (customCss = null) => {
     return `
     <style>
         body {
+        background: #18162A;
           width: 100%; 
           height: 100%; 
           padding: 0;
@@ -928,9 +950,11 @@ const getAnimationStyleTag = (customCss = null) => {
         .event-name-wrapper{
             text-align: center;
             color: white;
-            font-size: 40px;
-            text-shadow: 0px 0px 2px white;
+            font-size: 45px;
+            text-shadow: 0px 0px 20px yellow;
             font-weight: 900;
+            position: absolute;
+            top: 30%;
         }
         .event-name-wrapper .event-name{
         
@@ -942,18 +966,18 @@ const getAnimationStyleTag = (customCss = null) => {
             text-align: center;
             color: white;
             font-size: 50px;
-            text-shadow: 0px 0px 2px white;
+            text-shadow: 0px 0px 10px white;
             font-weight: 900;
         }
         
         .event-type-wrapper{
             text-align: center;
             color: white;
-            font-size: 30px;
-            text-shadow: 0px 0px 2px white;
+            font-size: 38px;
+            text-shadow: 0px 0px 15px yellow;
             font-weight: 900;
             position:absolute;
-            top:25%;
+            top:23%;
         }
         
         .app-completion-desc-wrapper{
@@ -961,17 +985,22 @@ const getAnimationStyleTag = (customCss = null) => {
             top: 65%;
             text-shadow: 0px 0px 25px black;
             text-align: center;
-            color: white;
+            color: yellow;
             font-size: 30px;
-            text-shadow: 0px 0px 2px white;
+            text-shadow: 0px 0px 20px black;
             font-weight: 900;
         }
         
-        #animIntroAppLogo{
+        .app-logo-wrapper{
             position:absolute;
-            width:30%;
-            top:40%;
-            left:35%;
+            border-radius: 50%;
+            width: 40%;
+            padding: 10px 10px 0px 10px;
+            left:25%;
+            top: 38%;
+        }
+        .app-logo-wrapper .app-logo-img{
+            width:90%;
         }
         
         #animIntroCountdownGif{
@@ -980,11 +1009,10 @@ const getAnimationStyleTag = (customCss = null) => {
             height:100%;
         }
         
-        #eventIntroSaveTheDate{
+        #eventIntroSaveTheDate, save-the-date-img{
             position:absolute;
-            width:90%;
-            height:90%;
-            top:5%;
+            width:110%;
+            height:110%;
         }
         
         #eventIntroLetsPartyGif{
@@ -994,12 +1022,8 @@ const getAnimationStyleTag = (customCss = null) => {
             top:8%;
         }
         
-        #animCompletionAppLogo{
-            position:absolute;
-            width:60%;
-            height:60%;
-            left:20%;
-            top:8%;
+        .app-logo-wrapper .app-logo-img-completion{
+            width:90%;
         }
         ${customCss}
     </style>`
@@ -1008,7 +1032,7 @@ const getAnimationStyleTag = (customCss = null) => {
 const getAnimationScriptTag = (animationConfigObj = null) => {
     return "<script> \n"+
     "const animationConfig = JSON.parse(JSON.stringify(" + JSON.stringify(animationConfigObj) + "));\n" +
-    "console.log(animationConfig);\n"+
+    //"console.log(animationConfig);\n"+
     "var timeouts = {};\n"+
     "$.fn.extend({\n"+
     "  animateCss: function (animationName, callback) {\n"+
@@ -1061,20 +1085,20 @@ const getAnimationScriptTag = (animationConfigObj = null) => {
     "           console.log(appIntroKeys);\n"+
    "            appIntroKeys.forEach(function (key) {\n"+
    "                var data = animationConfig.appIntro.animationContent[key];\n"+
-"                   console.log('appIntroKey data:');\n"+
-"                   console.log(data);\n"+
+//"                   console.log('appIntroKey data:');\n"+
+//"                   console.log(data);\n"+
 
    "                if(data.elementStyle){\n"+
    "                    var style = document.createElement('style');\n"+
    "                    style.type = 'text/css';\n"+
    "                    style.appendChild(document.createTextNode(data.elementStyle));\n"+
-"                       console.log('append appIntroKey style:');\n"+
-"                       console.log(style);\n"+
+//"                       console.log('append appIntroKey style:');\n"+
+//"                       console.log(style);\n"+
    "                    document.head.append(style);\n"+
    "                }\n"+
 
-"                   console.log('append appIntroKey element:');\n"+
-"                   console.log(data.element);\n"+
+//"                   console.log('append appIntroKey element:');\n"+
+//"                   console.log(data.element);\n"+
    "                document.body.append(str2DOMElement(data.element));\n"+
 
    "                if(data.animationScript){\n"+
@@ -1083,17 +1107,17 @@ const getAnimationScriptTag = (animationConfigObj = null) => {
    "                        script.type = 'text/javascript';\n"+
    "                        script.text = data.animationScript;\n"+
 
-"                           console.log('append appIntroKey script:');\n"+
-"                           console.log(data.animationScript);\n"+
+//"                           console.log('append appIntroKey script:');\n"+
+//"                           console.log(data.animationScript);\n"+
    "                        document.head.append(script);\n"+
 
-   "                        console.log(data.elementId + ' timeout was cleared(' + timeouts[data.elementId] + ')');\n"+
+ //  "                        console.log(data.elementId + ' timeout was cleared(' + timeouts[data.elementId] + ')');\n"+
    "                        clearTimeout(timeouts[data.elementId]);\n"+
    "                    }, data.delayTimeInMillisecond - 200);\n"+
    "                }\n"+
    "            });\n"+
 
-   "            console.log('appIntro timeout was cleared(' + t1 + ')');\n"+
+   //"            console.log('appIntro timeout was cleared(' + t1 + ')');\n"+
    "            clearTimeout(t1);\n"+
    "        }, animationConfig.appIntro.delayTimeInMillisecond - 200);\n"+
    "    }\n"+
@@ -1103,7 +1127,7 @@ const getAnimationScriptTag = (animationConfigObj = null) => {
    "            const eventIntroKeys = Object.keys(animationConfig.eventIntro.animationContent);\n"+
    "            eventIntroKeys.forEach(function (key) {\n"+
    "            var data = animationConfig.eventIntro.animationContent[key];\n"+
-   "            console.log(data);\n"+
+   //"            console.log(data);\n"+
 
    "            if(data.elementStyle){\n"+
    "                var style = document.createElement('style');\n"+
@@ -1121,13 +1145,13 @@ const getAnimationScriptTag = (animationConfigObj = null) => {
    "                  script.text = data.animationScript;\n"+
    "                  document.head.append(script);\n"+
 
-   "                  console.log(data.elementId + 'timeout was cleared(' + timeouts[data.elementId] + ')');\n"+
+  // "                  console.log(data.elementId + 'timeout was cleared(' + timeouts[data.elementId] + ')');\n"+
    "                  clearTimeout(timeouts[data.elementId]);\n"+
    "                }, data.delayTimeInMillisecond - 200);\n"+
    "            }\n"+
         "            });\n"+
 
-        "            console.log('eventIntro timeout was cleared(' + t2 + ')');\n"+
+    //    "            console.log('eventIntro timeout was cleared(' + t2 + ')');\n"+
         "            clearTimeout(t2);\n"+
    "        }, animationConfig.eventIntro.delayTimeInMillisecond - 200);\n"+
    "    }\n"+
@@ -1135,9 +1159,11 @@ const getAnimationScriptTag = (animationConfigObj = null) => {
    "    if(animationConfig.photosAnimationContent){\n"+
    "        const t3 = setTimeout(function(){\n"+
    "            const photosAnimKeys = Object.keys(animationConfig.photosAnimationContent.animationContent);\n"+
+   "            console.log('photos keys:');\n"+
+   "            console.log(photosAnimKeys);\n"+
    "            photosAnimKeys.forEach(function (key) {\n"+
    "            var data = animationConfig.photosAnimationContent.animationContent[key];\n"+
-   "            console.log(data);\n"+
+   //"            console.log(data);\n"+
 
    "            if(data.elementStyle){\n"+
    "                var style = document.createElement('style');\n"+
@@ -1155,21 +1181,22 @@ const getAnimationScriptTag = (animationConfigObj = null) => {
    "                  script.text = data.animationScript;\n"+
    "                  document.head.append(script);\n"+
 
-   "                  console.log(data.elementId + 'timeout was cleared(' + timeouts[data.elementId] + ')');\n"+
+  // "                  console.log(data.elementId + 'timeout was cleared(' + timeouts[data.elementId] + ')');\n"+
    "                  clearTimeout(timeouts[data.elementId]);\n"+
-   "                }, data.delayTimeInMillisecond - 200);\n"+
+   "                }, data.delayTimeInMillisecond - 700);\n"+
    "            }\n"+
         "            });\n"+
 
-        "            console.log('photosAnimationContent timeout was cleared(' + t3 + ')');\n"+
+       // "            console.log('photosAnimationContent timeout was cleared(' + t3 + ')');\n"+
         "            clearTimeout(t3);\n"+
-   "        }, animationConfig.photosAnimationContent.delayTimeInMillisecond - 200);\n"+
+   "        }, animationConfig.photosAnimationContent.delayTimeInMillisecond - 500);\n"+
    "    }\n"+
 
    "    if(animationConfig.appCompletion){\n"+
    "        const t4 = setTimeout(function(){\n"+
    "            const appCompletionKeys = Object.keys(animationConfig.appCompletion.animationContent);\n"+
-   "            appCompletionKeys.forEach(function (key) {\n"+
+
+        "            appCompletionKeys.forEach(function (key) {\n"+
    "            var data = animationConfig.appCompletion.animationContent[key];\n"+
    "            console.log(data);\n"+
 
@@ -1189,14 +1216,14 @@ const getAnimationScriptTag = (animationConfigObj = null) => {
    "                  script.text = data.animationScript;\n"+
    "                  document.head.append(script);\n"+
 
-   "                  console.log(data.elementId + 'timeout was cleared(' + timeouts[data.elementId] + ')');\n"+
+  // "                  console.log(data.elementId + 'timeout was cleared(' + timeouts[data.elementId] + ')');\n"+
    "                  clearTimeout(timeouts[data.elementId]);\n"+
    "                }, data.delayTimeInMillisecond - 200);\n"+
    "            }\n"+
 
         "            });\n"+
 
-        "            console.log('appCompletion timeout was cleared(' + t4 + ')');\n"+
+      //  "            console.log('appCompletion timeout was cleared(' + t4 + ')');\n"+
         "            clearTimeout(t4);\n"+
    "        }, animationConfig.appCompletion.delayTimeInMillisecond - 200);\n"+
    "    }\n"+
