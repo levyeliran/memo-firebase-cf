@@ -119,33 +119,42 @@ export const onEvenUpdated_setUserToEventStatus = functions.database
             .ref(`userToEvent`)
             .once('value')
             .then(ute => {
-
                 if (ute) {
-                    console.log(`Users events list mapping:`);
-                    console.log(JSON.stringify(ute));
+                    const userToEventList = ute.val();
 
-                    const eventsToUpdate = Object.keys(ute).map(k => {
-                        if (k === event.data.key) {
-                            return ute[k];
-                        }
-                        return null;
-                    }).filter(e => e);
+                    console.log(`Users events list mapping:`);
+                    console.log(JSON.stringify(userToEventList));
+
+                    const eventsToUpdate = Object.keys(userToEventList).filter(e => e);
+
+                    console.log(`Users events keys:`);
+                    console.log(JSON.stringify(eventsToUpdate));
 
                     eventsToUpdate.forEach(e => {
-                        console.log(`update users events mapping for user ${e.userKey}:`);
-                        console.log(JSON.stringify(ute));
+                        console.log(`update users events mapping for user ${JSON.stringify(e)}:`);
+                        console.log(JSON.stringify(userToEventList[e]));
 
-                        e.isActive = fbData.data.isActive;
-                        e.isPast = fbData.data.isPast;
+                        if(userToEventList && userToEventList[e] && userToEventList[e][fbData.data.key]){
+                            const userEvent = userToEventList[e][fbData.data.key];
 
-                        //update the event details to "userToEvent" node
-                        admin.database()
-                            .ref(`userToEvent/${e.userKey}`)
-                            .child(e.key)
-                            .set(e).then(e => {
-                            console.log(`user event mapping was updated!`);
-                            console.log(JSON.stringify(e));
-                        });
+                            console.log(`update user ${JSON.stringify(e)} event ${JSON.stringify(userEvent)}:`);
+                            console.log(JSON.stringify(userToEventList[e]));
+                            const entity = {
+                                isActive: fbData.data.isActive,
+                                isPast: fbData.data.isPast
+                            };
+
+                            //update the event details to "userToEvent" node
+                            admin.database()
+                                .ref(`userToEvent/${e}`)
+                                .child(fbData.data.key)
+                                .set(entity).then(res => {
+
+                                console.log(`user event mapping was updated!`);
+                                console.log(JSON.stringify(res));
+                            });
+                        }
+                        console.log(`user ${e} has no mapping for event ${fbData.data.key}!`);
                     });
                     return '';
                 }
@@ -166,6 +175,7 @@ function fixPhoneNumber(phone:string =''){
         .split('_').join('')
         .split('.').join('')
 }
+
 
 /*
 
