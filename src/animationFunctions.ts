@@ -826,7 +826,7 @@ const getAnimationStyleTag = (customCss = null) => {
     return `
     <style>
         body {
-        background: #18162A;
+          background: #18162A;
           width: 100%; 
           height: 100%; 
           padding: 0;
