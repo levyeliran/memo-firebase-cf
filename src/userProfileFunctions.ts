@@ -61,24 +61,3 @@ function fixPhoneNumber(phone:string =''){
         .split('_').join('')
         .split('.').join('')
 }
-
-/*
-
-export const onCreateEventListener_setEventToInvitedUsers = functions.database
-    .ref('events/{pushId}')
-    .onWrite(async event => {
-
-    });
-
-
-export const onCreateEventListener_sendNotifications = functions.database
-    .ref('events/{pushId}')
-    .onWrite(async event => {
-
-    });
-
-const onUpdateEventListener_updateInvitedUsersStatus = functions.database
-    .ref('events/{pushId}')
-    .onUpdate(async event => {
-        //when app close the event - set status "rejected for all other users"
-    });*/

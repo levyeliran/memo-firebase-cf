@@ -14,8 +14,6 @@
  * See the License for t`he specific language governing permissions and
  * limitations under the License.
  */
-
-
 import {extractData} from "./extractDataHelper";
 import {FBData} from "./utilities/FBData";
 
@@ -158,7 +156,6 @@ export const onPhotoUploaded_generatePhotoThumbnail = functions.storage
                 });
         }).then(() => console.log('Thumbnail URLs saved to database.'));
     });
-
 
 export const onPhotoAdded_updateThumbnailURL = functions.database
     .ref('thumbnailMapper/{eventKey}/{photoKey}')

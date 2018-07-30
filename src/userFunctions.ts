@@ -5,7 +5,6 @@ import {extractData} from "./extractDataHelper";
 import {FBData} from "./utilities/FBData";
 import {EventStatus} from "./utilities/EntityTypes";
 
-
 //to write into db, use admin
 export const onUserCreated_registerPendingEvents = functions.database
     .ref('users/{pushId}')
@@ -67,7 +66,6 @@ export const onUserCreated_registerPendingEvents = functions.database
                 }
             });
     });
-
 
 function fixPhoneNumber(phone:string =''){
     return phone

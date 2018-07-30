@@ -1488,15 +1488,6 @@ const getAnimationDurationCss = (duration = 1) => {
     };
 };
 
-const getAnimationRotationCss = (deg = 0) => {
-    //positive number (0 -> 90): left side up
-    //negative number (-90 -> 0): right side up
-    return {
-        className: `.rotate${deg}`,
-        style: `.rotate${deg} {transform: rotate(${deg}deg);}`
-    };
-};
-
 const getInAnimationType = () => {
     const inKeys = Object.keys(ANIMATION_IN_TYPES);
     const rnd = Math.floor((Math.random() * inKeys.length) + 1);
